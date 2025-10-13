@@ -7,3 +7,6 @@ Members:
 - Michal Kolinek
 - Martin Horesovsky
 - Ondrej Cihlar
+
+Deployment:
+- Automatical using github actions
