@@ -1,37 +1,34 @@
-name: Deploy to /workplace on Merge to Main
+name: Deploy to /workplace/repo on Merge to Main
 
 on:
   push:
     branches:
-      - main    # Trigger deployment when code is pushed/merged into main
+      - main  # Run when code is merged or pushed to main
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      # (1) Checkout the repo (not strictly needed for deployment, but useful for artifacts)
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # (2) Configure SSH
-      - name: Setup SSH for custom port
+      - name: Setup SSH
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.DEPLOYBOT_KEY }}" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan -H ${{ secrets.VM_HOST }} >> ~/.ssh/known_hosts
 
-      # (3) Deploy to VM
       - name: Deploy to VM
         run: |
           ssh -i ~/.ssh/id_ed25519 deploybot@${{ secrets.VM_HOST }} "
             set -e
-            if [ ! -d /workplace/.git ]; then
-              git clone -b main git@github.com:Bonifac0/ITE-BSOI_semestralka.git /workplace
+            if [ ! -d /workplace/repo/.git ]; then
+              mkdir -p /workplace/repo
+              git clone -b main git@github.com:Bonifac0/ITE-BSOI_semestralka.git /workplace/repo
             fi
-            cd /workplace
-            git fetch origin
+            cd /workplace/repo
+            git fetch origin main
             git reset --hard origin/main
           "
-
