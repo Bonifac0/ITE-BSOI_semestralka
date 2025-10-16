@@ -33,6 +33,7 @@ jobs:
             git reset --hard origin/main
 
             # Append deployment info to deploy_log.txt
+            cd ..
             DEPLOY_TIME=\$(date '+%Y-%m-%d %H:%M:%S')
             LAST_COMMIT_HASH=\$(git rev-parse HEAD)
             LAST_COMMIT_MSG=\$(git log -1 --pretty=%B)
