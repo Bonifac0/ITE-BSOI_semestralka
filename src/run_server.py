@@ -1,20 +1,34 @@
 from tornado import httpserver, ioloop, web
+import os
+
+INDEX_PATH = "/workplace/repo/web_resources/index.html"
+CERTIFILE_PATH = "/workplace/certification/cert.pem"
+KEYFILE_PATH = ("/workplace/certification/key.pem",)
+CA_CERTS = ("/workplace/certification/fullchain.pem",)
+
+
+def check_files():
+    files_to_check = [INDEX_PATH, CERTIFILE_PATH, KEYFILE_PATH, CA_CERTS]
+    for path in files_to_check:
+        if not os.path.isfile(path):
+            raise FileNotFoundError(f"File '{path}' does not exist.")
 
 
 class RootHandler(web.RequestHandler):
     def get(self):
-        self.render("/workplace/repo/web_resources/index.html")
+        self.render(INDEX_PATH)
 
 
 app = web.Application([(r"/", RootHandler)])
 
 if __name__ == "__main__":
+    check_files()
     server = httpserver.HTTPServer(
         app,
         ssl_options={
-            "certfile": "cert.pem",
-            "keyfile": "key.pem",
-            "ca_certs": "fullchain.pem",
+            "certfile": CERTIFILE_PATH,
+            "keyfile": KEYFILE_PATH,
+            "ca_certs": CA_CERTS,
         },
     )
     server.listen(443)
