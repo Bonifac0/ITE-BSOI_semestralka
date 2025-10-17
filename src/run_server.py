@@ -3,8 +3,8 @@ import os
 
 INDEX_PATH = "/workplace/repo/web_resources/index.html"
 CERTIFILE_PATH = "/workplace/certification/cert.pem"
-KEYFILE_PATH = ("/workplace/certification/key.pem",)
-CA_CERTS = ("/workplace/certification/fullchain.pem",)
+KEYFILE_PATH = "/workplace/certification/key.pem"
+CA_CERTS = "/workplace/certification/fullchain.pem"
 
 
 def check_files():
