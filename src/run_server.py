@@ -22,6 +22,7 @@ class RootHandler(web.RequestHandler):
 app = web.Application([(r"/", RootHandler)])
 
 if __name__ == "__main__":
+    print("Server is starting")
     check_files()
     server = httpserver.HTTPServer(
         app,

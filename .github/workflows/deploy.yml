@@ -50,3 +50,6 @@ jobs:
           "
 
           echo 'Deployment note appended to deploy_log.txt'
+
+          sudo systemctl restart itebsoi
+          echo 'Python server restarted via systemd'
