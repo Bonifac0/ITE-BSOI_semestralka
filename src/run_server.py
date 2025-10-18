@@ -1,7 +1,7 @@
 from tornado import httpserver, ioloop, web
 import os
 
-INDEX_PATH = "repo/web_resources/index.html"
+INDEX_PATH = "/workplace/repo/web_resources/index.html"  # becouse tornado is dumm
 CERTIFILE_PATH = "certification/cert.pem"
 KEYFILE_PATH = "certification/key.pem"
 CA_CERTS = "certification/fullchain.pem"
