@@ -1,10 +1,10 @@
 from tornado import httpserver, ioloop, web
 import os
 
-INDEX_PATH = "/workplace/repo/web_resources/index.html"
-CERTIFILE_PATH = "/workplace/certification/cert.pem"
-KEYFILE_PATH = "/workplace/certification/key.pem"
-CA_CERTS = "/workplace/certification/fullchain.pem"
+INDEX_PATH = "repo/web_resources/index.html"
+CERTIFILE_PATH = "certification/cert.pem"
+KEYFILE_PATH = "certification/key.pem"
+CA_CERTS = "certification/fullchain.pem"
 
 
 def check_files():
