@@ -19,11 +19,10 @@ class RootHandler(web.RequestHandler):
         self.render(INDEX_PATH)
 
 
-app = web.Application([(r"/", RootHandler)])
-
-if __name__ == "__main__":
+def main():  # called from /workplace/run.py
     print("Server is starting")
     check_files()
+    app = web.Application([(r"/", RootHandler)])
     server = httpserver.HTTPServer(
         app,
         ssl_options={
