@@ -1,87 +1,27 @@
 import json
 import time
 import ssl
-import os
 import requests
 import paho.mqtt.client as mqtt
 import mysql.connector
 from mysql.connector import Error
 import processor_config as conf
-
-
-# === QUEUE HANDLING ===
-def load_failed_queue():
-    if os.path.exists(conf.FAILED_QUEUE_FILE):
-        with open(conf.FAILED_QUEUE_FILE, "r") as f:
-            try:
-                return json.load(f)
-            except json.JSONDecodeError:
-                return []
-    return []
-
-
-def save_failed_queue(queue):
-    with open(conf.FAILED_QUEUE_FILE, "w") as f:
-        json.dump(queue, f, indent=2)
-
-
-def add_to_failed_queue(task_type, data):
-    queue = load_failed_queue()
-    queue.append({"task": task_type, "data": data, "timestamp": time.time()})
-    save_failed_queue(queue)
-
-
-def retry_failed_tasks():
-    queue = load_failed_queue()
-    if not queue:
-        return
-
-    print(f"Retrying {len(queue)} failed tasks...")
-    new_queue = []
-
-    for item in queue:
-        success = False
-        if item["task"] == "aws":
-            success = upload_to_aws(item["data"])
-        elif item["task"] == "mysql":
-            success = insert_to_mysql(item["data"])
-
-        if not success:
-            new_queue.append(item)
-
-    save_failed_queue(new_queue)
+import aws_handler as aws
 
 
 # === PROCESSING FUNCTION ===
 def process_data(data):
-    data["processed_at"] = time.strftime("%Y-%m-%d %H:%M:%S")
-    data["temp_celsius"] = (data.get("temp_fahrenheit", 0) - 32) * 5 / 9
-
-    upload_to_aws(data)
+    massage = {
+        "type": conf.EP_MEASUREMENTS,
+        "sensor": conf.SENS_HUMI_UUID,
+        "value": 1212,
+        "timestamp": "pul ctvrta",
+    }
+    aws.upload_to_aws(massage)
     insert_to_mysql(data)
     notify_local_server()
 
-    retry_failed_tasks()
-
-
-# === UPLOAD TO AWS ===
-def upload_to_aws(data):
-    """return True if sucessfull"""
-    headers = {"Content-Type": "application/json", "x-api-key": conf.AWS_API_KEY}
-    try:
-        response = requests.post(
-            conf.AWS_API_URL, json=data, headers=headers, timeout=5
-        )
-        if response.status_code == 200:
-            print("Successfully uploaded to AWS.")
-            return True
-        else:
-            print(f"AWS upload failed: {response.status_code} {response.text}")
-    except Exception as e:
-        print(f"Error uploading to AWS: {e}")
-
-    add_to_failed_queue("aws", data)
-    return False
+    aws.retry_failed_tasks()
 
 
 # === STORE IN MYSQL DATABASE ===
@@ -109,7 +49,6 @@ def insert_to_mysql(data):
         return True
     except Error as e:
         print(f"MySQL error: {e}")
-        add_to_failed_queue("mysql", data)
         return False
     finally:
         if "connection" in locals() and connection.is_connected():
