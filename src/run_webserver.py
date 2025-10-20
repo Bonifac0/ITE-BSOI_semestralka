@@ -22,7 +22,10 @@ class RootHandler(web.RequestHandler):
 if __name__ == "__main__":
     print("Server is starting")
     check_files()
-    app = web.Application([(r"/", RootHandler)])
+    app = web.Application([
+        (r"/", RootHandler),
+        (r"/static/(.*)", web.StaticFileHandler, {"path": "/workplace/repo/web_resources/static/"}),
+        ])
     server = httpserver.HTTPServer(
         app,
         ssl_options={
