@@ -1,16 +1,11 @@
 // --- GLOBAL STATE & CONSTANTS ---
-let sensors = [
-    { id: 1, name: 'Blue Team', data: { temperature: 25.5, humidity: 45, lightness: 300 }, status: 'Online' },
-    { id: 2, name: 'Yellow Team', data: { temperature: 23.1, humidity: 55, lightness: 450 }, status: 'Online' },
-    { id: 3, name: 'Green Team', data: null, status: 'Offline' },
-    { id: 4, name: 'Red Team', data: { temperature: 28.9, humidity: 40, lightness: 600 }, status: 'Online' },
-    { id: 5, name: 'Black Team', data: null, status: 'Offline' },
-];
+let sensors = [];
 const sensorColors = ['#0e7fdbff', '#f5f22fff', '#38a164ff', '#ee1212ff', '#e2dedeff']; // Tailwind colors: blue, yellow, green, red, black
 
 let currentView = 'live';
 let historicalData = null;
 let chartInstances = {}; // To store Chart.js instances
+let socket;
 
 // --- DOM ELEMENTS ---
 const liveBtn = document.getElementById('live-btn');
@@ -59,34 +54,21 @@ const generateHistoricalData = (count = 20) => {
     return data;
 };
 
-// --- LIVE DATA HANDLING (MOCK WEBSOCKET) ---
-
-let liveDataInterval;
-
-const updateLiveData = () => {
-    sensors = sensors.map(sensor => {
-        if (sensor.status === 'Online' && sensor.data) {
-            return {
-                ...sensor,
-                data: {
-                    temperature: sensor.data.temperature + (Math.random() * 0.5 - 0.25),
-                    humidity: sensor.data.humidity + (Math.random() * 1.0 - 0.5),
-                    lightness: sensor.data.lightness + (Math.random() * 10 - 5),
-                }
-            };
-        }
-        return sensor;
-    });
-    renderLiveView();
-};
+// --- LIVE DATA HANDLING (WEBSOCKET) ---
 
 const startLiveUpdates = () => {
-    if (liveDataInterval) clearInterval(liveDataInterval);
-    liveDataInterval = setInterval(updateLiveData, 2000); // 2-second update
+    socket = new WebSocket(`wss://${window.location.host}/websocket`);
+
+    socket.onmessage = function(event) {
+        sensors = JSON.parse(event.data);
+        renderLiveView();
+    };
 };
 
 const stopLiveUpdates = () => {
-    if (liveDataInterval) clearInterval(liveDataInterval);
+    if (socket) {
+        socket.close();
+    }
 };
 
 // --- UI RENDERING FUNCTIONS ---
