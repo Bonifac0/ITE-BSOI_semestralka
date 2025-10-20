@@ -19,7 +19,7 @@ class RootHandler(web.RequestHandler):
         self.render(INDEX_PATH)
 
 
-def main():  # called from /workplace/run.py
+if __name__ == "__main__":
     print("Server is starting")
     check_files()
     app = web.Application([(r"/", RootHandler)])
