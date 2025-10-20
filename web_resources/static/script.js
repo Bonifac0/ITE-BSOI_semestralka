@@ -281,7 +281,12 @@ const openModal = (sensorId) => {
 
     modalContent.dataset.sensorId = sensorId;
     sensorModal.classList.remove('hidden');
-    createModalChart(sensorId);
+
+    if (sessionData[sensorId].length === 0) {
+        modalChartContainer.innerHTML = '<div class="no-data-message">No data has been received for this sensor yet.</div>';
+    } else {
+        createModalChart(sensorId);
+    }
 };
 
 const closeModal = () => {
@@ -293,6 +298,7 @@ const closeModal = () => {
             modalChartInstance.destroy();
             modalChartInstance = null;
         }
+        modalChartContainer.innerHTML = '<canvas id="modal-chart"></canvas>'; // Restore canvas
     }, 300);
 };
 
@@ -301,6 +307,7 @@ const createModalChart = (sensorId) => {
     const data = sessionData[sensorId];
     const color = sensorColors[sensorId - 1];
 
+    modalChartContainer.innerHTML = '<canvas id="modal-chart"></canvas>'; // Ensure canvas is present
     const ctx = document.getElementById('modal-chart').getContext('2d');
 
     if (modalChartInstance) {
@@ -350,6 +357,10 @@ const createModalChart = (sensorId) => {
 };
 
 const updateModalChart = (sensorId) => {
+    if (sessionData[sensorId].length > 0 && !modalChartInstance) {
+        createModalChart(sensorId);
+    }
+
     if (!modalChartInstance) return;
 
     const data = sessionData[sensorId];
@@ -380,7 +391,7 @@ const switchView = (view) => {
 
     if (view === 'live') {
         historyView.classList.add('slide-out-right');
-        liveView.classList.remove('hidden');
+        liveView.classList.remove('hidden', 'slide-out-left');
         liveView.classList.add('slide-in-left');
         setTimeout(() => {
             historyView.classList.add('hidden');
@@ -391,7 +402,7 @@ const switchView = (view) => {
         startLiveUpdates();
     } else {
         liveView.classList.add('slide-out-left');
-        historyView.classList.remove('hidden');
+        historyView.classList.remove('hidden', 'slide-out-right');
         historyView.classList.add('slide-in-right');
         setTimeout(() => {
             liveView.classList.add('hidden');

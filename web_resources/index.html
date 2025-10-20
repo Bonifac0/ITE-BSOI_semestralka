@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Multi-Sensor Dashboard</title>
+    <title>Blue Team Sensor Dashboard</title>
     <!-- Load Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Load Chart.js for visualization -->
@@ -16,7 +16,7 @@
 <body class="min-h-screen bg-gray-900 text-gray-100 p-4 sm:p-8 font-sans">
 
     <header class="mb-10 text-center">
-        <h1 class="text-4xl font-extrabold text-white mb-2 tracking-tight">Multi-Sensor Dashboard</h1>
+        <h1 class="text-4xl font-extrabold text-white mb-2 tracking-tight">Blue Team Sensor Dashboard</h1>
         <p class="text-gray-400">Real-time data visualization for 5 environment sensor sets.</p>
     </header>
 
@@ -33,36 +33,41 @@
     </div>
 
     <!-- Content Area -->
-    <main id="content-area" class="max-w-7xl mx-auto">
-        <!-- Live Data View -->
-        <div id="live-view">
-            <div id="update-time" class="flex justify-end text-sm text-gray-500 mb-4"></div>
-            <div id="sensor-cards" class="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-5 gap-6">
-                <!-- Sensor cards will be injected here -->
-            </div>
-        </div>
-
-        <!-- Historical Trends View -->
-        <div id="history-view" class="hidden space-y-8">
-            <!-- Charts will be injected here -->
-            <div id="temp-chart-container"
-                class="bg-gray-800 p-6 rounded-2xl shadow-xl transition duration-300 hover:shadow-2xl hover:bg-gray-700/80">
-                <h3 class="text-xl font-semibold mb-4 text-white border-b border-gray-600 pb-2">Temperature Trends (°C)
-                </h3>
-                <div class="chart-container"><canvas id="tempChart"></canvas></div>
+    <main id="content-area" class="max-w-7xl mx-auto relative overflow-hidden">
+        <div id="view-container" class="relative">
+            <!-- Live Data View -->
+            <div id="live-view">
+                <div id="update-time" class="flex justify-end text-sm text-gray-500 mb-4"></div>
+                <div id="sensor-cards" class="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-5 gap-6">
+                    <!-- Sensor cards will be injected here -->
+                </div>
             </div>
 
-            <div id="hum-chart-container"
-                class="bg-gray-800 p-6 rounded-2xl shadow-xl transition duration-300 hover:shadow-2xl hover:bg-gray-700/80">
-                <h3 class="text-xl font-semibold mb-4 text-white border-b border-gray-600 pb-2">Humidity Trends (%)</h3>
-                <div class="chart-container"><canvas id="humChart"></canvas></div>
-            </div>
+            <!-- Historical Trends View -->
+            <div id="history-view" class="hidden absolute top-0 left-0 w-full space-y-8">
+                <!-- Charts will be injected here -->
+                <div id="temp-chart-container"
+                    class="bg-gray-800 p-6 rounded-2xl shadow-xl transition duration-300 hover:shadow-2xl hover:bg-gray-700/80">
+                    <h3 class="text-xl font-semibold mb-4 text-white border-b border-gray-600 pb-2">Temperature Trends
+                        (°C)
+                    </h3>
+                    <div class="chart-container"><canvas id="tempChart"></canvas></div>
+                </div>
 
-            <div id="light-chart-container"
-                class="bg-gray-800 p-6 rounded-2xl shadow-xl transition duration-300 hover:shadow-2xl hover:bg-gray-700/80">
-                <h3 class="text-xl font-semibold mb-4 text-white border-b border-gray-600 pb-2">Lightness Trends (lux)
-                </h3>
-                <div class="chart-container"><canvas id="lightChart"></canvas></div>
+                <div id="hum-chart-container"
+                    class="bg-gray-800 p-6 rounded-2xl shadow-xl transition duration-300 hover:shadow-2xl hover:bg-gray-700/80">
+                    <h3 class="text-xl font-semibold mb-4 text-white border-b border-gray-600 pb-2">Humidity Trends (%)
+                    </h3>
+                    <div class="chart-container"><canvas id="humChart"></canvas></div>
+                </div>
+
+                <div id="light-chart-container"
+                    class="bg-gray-800 p-6 rounded-2xl shadow-xl transition duration-300 hover:shadow-2xl hover:bg-gray-700/80">
+                    <h3 class="text-xl font-semibold mb-4 text-white border-b border-gray-600 pb-2">Lightness Trends
+                        (lux)
+                    </h3>
+                    <div class="chart-container"><canvas id="lightChart"></canvas></div>
+                </div>
             </div>
         </div>
     </main>

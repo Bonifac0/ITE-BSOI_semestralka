@@ -33,6 +33,15 @@ body::-webkit-scrollbar-thumb {
     animation: scale-out 0.3s ease-in forwards;
 }
 
+.no-data-message {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: #9ca3af;
+    font-size: 1.25rem;
+}
+
 @keyframes scale-in {
     from {
         transform: scale(0.9);
@@ -58,6 +67,8 @@ body::-webkit-scrollbar-thumb {
 /* View switching animations */
 .slide-out-left {
     animation: slide-out-left 0.5s forwards;
+    position: absolute;
+    width: 100%;
 }
 
 .slide-in-right {
@@ -66,6 +77,8 @@ body::-webkit-scrollbar-thumb {
 
 .slide-out-right {
     animation: slide-out-right 0.5s forwards;
+    position: absolute;
+    width: 100%;
 }
 
 .slide-in-left {
