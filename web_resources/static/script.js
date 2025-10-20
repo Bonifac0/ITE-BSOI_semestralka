@@ -1,12 +1,12 @@
 // --- GLOBAL STATE & CONSTANTS ---
 let sensors = [
-    { id: 1, name: 'Main Server Rack', data: { temperature: 25.5, humidity: 45, lightness: 300 }, status: 'Online' },
-    { id: 2, name: 'West Wing HVAC', data: { temperature: 23.1, humidity: 55, lightness: 450 }, status: 'Online' },
-    { id: 3, name: 'Warehouse Entry', data: null, status: 'Offline' },
-    { id: 4, name: 'Data Center Core', data: { temperature: 28.9, humidity: 40, lightness: 600 }, status: 'Online' },
-    { id: 5, name: 'Roof Access', data: null, status: 'Offline' },
+    { id: 1, name: 'Blue Team', data: { temperature: 25.5, humidity: 45, lightness: 300 }, status: 'Online' },
+    { id: 2, name: 'Yellow Team', data: { temperature: 23.1, humidity: 55, lightness: 450 }, status: 'Online' },
+    { id: 3, name: 'Green Team', data: null, status: 'Offline' },
+    { id: 4, name: 'Red Team', data: { temperature: 28.9, humidity: 40, lightness: 600 }, status: 'Online' },
+    { id: 5, name: 'Black Team', data: null, status: 'Offline' },
 ];
-const sensorColors = ['#4299E1', '#F6AD55', '#48BB78', '#ED64A6', '#ECC94B']; // Tailwind colors: blue, orange, green, pink, yellow
+const sensorColors = ['#0e7fdbff', '#f5f22fff', '#38a164ff', '#ee1212ff', '#e2dedeff']; // Tailwind colors: blue, yellow, green, red, black
 
 let currentView = 'live';
 let historicalData = null;
@@ -117,7 +117,7 @@ const renderSensorCard = (sensor) => {
                 `;
     } else {
         content = `
-                    <div class="grid grid-cols-3 gap-4">
+                    <div class="grid grid-cols-3 2xl:grid-cols-2 gap-4 place-content-center">
                         <div class="flex flex-col items-center">
                             <p class="text-gray-400 text-sm mb-1">Temp</p>
                             <div class="text-3xl font-bold transition-all duration-500" style="color: ${color}">
@@ -130,7 +130,7 @@ const renderSensorCard = (sensor) => {
                                 ${sensor.data.humidity.toFixed(0)}%
                             </div>
                         </div>
-                        <div class="flex flex-col items-center">
+                        <div class="flex flex-col items-center 2xl:col-span-2">
                             <p class="text-gray-400 text-sm mb-1">Lightness</p>
                             <div class="text-3xl font-bold transition-all duration-500" style="color: ${color}">
                                 ${sensor.data.lightness.toFixed(0)} lux
@@ -180,7 +180,7 @@ const destroyCharts = () => {
 const createChart = (canvasId, title, dataKeys, unit) => {
     const ctx = document.getElementById(canvasId).getContext('2d');
     const datasets = dataKeys.map((key, index) => ({
-        label: `Sensor ${index + 1} ${unit}`,
+        label: `${sensors[index].name} ${unit}`,
         data: historicalData.map(d => d[key].toFixed(2)),
         borderColor: sensorColors[index],
         backgroundColor: sensorColors[index] + '40', // Semi-transparent fill
