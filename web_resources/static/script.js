@@ -184,7 +184,7 @@ const destroyCharts = () => {
 const createChart = (canvasId, title, dataKeys, unit) => {
     const ctx = document.getElementById(canvasId).getContext('2d');
     const datasets = dataKeys.map((key, index) => ({
-        label: `${sensors[index].name} ${unit}`,
+        label: `${sensors[index]?.name || `Sensor ${index + 1}`} ${unit}`,
         data: historicalData.map(d => d[key].toFixed(2)),
         borderColor: sensorColors[index],
         backgroundColor: sensorColors[index] + '40', // Semi-transparent fill
@@ -450,6 +450,11 @@ window.onload = function () {
         const card = e.target.closest('[data-sensor-id]');
         if (card) {
             openModal(card.dataset.sensorId);
+        }
+    });
+    sensorModal.addEventListener('click', (e) => {
+        if (e.target === sensorModal) {
+            closeModal();
         }
     });
 
