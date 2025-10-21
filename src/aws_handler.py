@@ -60,9 +60,9 @@ def _save_failed_queue(queue):
         json.dump(queue, f, indent=4)
 
 
-def _add_to_failed_queue(data):
+def _add_to_failed_queue(type, data):
     queue = _load_failed_queue()
-    queue.append(data)
+    queue.append((type, data))
     _save_failed_queue(queue)
 
 
@@ -74,30 +74,55 @@ def retry_failed_tasks():
     print(f"Retrying {len(queue)} failed tasks...")
     new_queue = []
 
-    for item in queue:
-        if not upload_to_aws(**item):
-            new_queue.append(item)
+    for type, item in queue:
+        if type == "M":
+            if not measurement_to_aws(item):  # it tryes to post and return result
+                new_queue.append((type, item))
+        elif type == "A":
+            if not alert_to_aws(item):
+                new_queue.append((type, item))
 
     _save_failed_queue(new_queue)
 
 
 # Create Measurement
-def upload_to_aws(data):  # TODO add alert capabilities
-    print(f"Uploading for sensorUUID {data[1]}")
+def measurement_to_aws(data):
+    print(f"Uploading measurement for sensorUUID {data['sensor']}")
 
-    measurement_payload = {
-        "createdOn": data["timestamp"],
+    payload = {
+        "createdOn": data["timestamp"],  # format "2022-10-05T13:00:00.000+01:00"
         "sensorUUID": data["sensor"],
-        "temperature": str(data["value"]),  # propably has to be string
-        "status": "TEST",  # dont know, I have to ask
+        "temperature": data["value"],
+        "status": "TEST",  # for testing, after that change it to something
     }
 
-    answer = _post_(conf.EP_MEASUREMENTS, measurement_payload)
-    if bool(answer):
-        print(f"Measurement creation successful:\n{answer}")
+    responce = _post_(conf.EP_MEASUREMENTS, payload)
+    if bool(responce):
+        print(f"Measurement creation successful:\n{responce}")
         return True
     else:
-        _add_to_failed_queue(data)
+        _add_to_failed_queue("M", data)
+        return False
+
+
+# Create Alert
+def alert_to_aws(data):
+    print(f"Uploading alert for sensorUUID {data['sensor']}")
+
+    payload = {  # no status
+        "createdOn": data["timestamp"],  # format "2022-10-05T13:00:00.000+01:00"
+        "sensorUUID": data["sensor"],
+        "temperature": data["value"],
+        "highTemperature": conf.SENS_MIN_MAX[data["sensor"]][1],
+        "lowTemperature": conf.SENS_MIN_MAX[data["sensor"]][0],
+    }
+
+    responce = _post_(conf.EP_ALERTS, payload)
+    if bool(responce):
+        print(f"Alert creation successful:\n{responce}")
+        return True
+    else:
+        _add_to_failed_queue("A", data)
         return False
 
 
@@ -114,3 +139,22 @@ def read_allerts():  # if someone needs if
 
     for alert in alerts:
         print(alert)
+
+
+def is_alerting(data) -> bool:
+    minimum = conf.SENS_MIN_MAX[data["sensor"]][0]
+    maximum = conf.SENS_MIN_MAX[data["sensor"]][1]
+    return (minimum > data["value"]) or (data["value"] > maximum)
+
+
+if __name__ == "__main__":  # for testing
+    sensor = conf.SENS_HUMI_UUID
+    value = 80
+    timestamp = "pul ctvrta"
+
+    massage = {
+        "sensor": sensor,
+        "value": value,
+        "timestamp": timestamp,
+    }
+    print(is_alerting(massage))

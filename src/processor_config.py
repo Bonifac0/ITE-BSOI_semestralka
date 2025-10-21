@@ -19,7 +19,7 @@ EP_ALERTS = f"{URI_BASE}/alerts"
 
 def load_aws_credentials():
     username, password = None, None
-    with open(MYSQL_CREDENTIALS_FILE, "r") as f:
+    with open(AWS_CREDENTIALS_FILE, "r") as f:
         uuid = f.readline()
 
     if not username or not password:
@@ -30,11 +30,17 @@ def load_aws_credentials():
     return uuid
 
 
-MYSQL_CREDENTIALS_FILE = "credentials/credentials_mysql.txt"
+AWS_CREDENTIALS_FILE = "credentials/credentials_aws.txt"
 HEADERS = {"Content-Type": "application/json", "teamUUID": load_aws_credentials()}
 SENS_TEMP_UUID = "43e67eda-67ab-4524-b945-df18cc9d4e44"
 SENS_HUMI_UUID = "8548701c-5af7-4d1b-b7ef-1292847ebdc4"
 SENS_ILLU_UUID = "5bbc2513-b731-4c18-9548-94129c0351b6"
+
+SENS_MIN_MAX = {
+    "43e67eda-67ab-4524-b945-df18cc9d4e44": (-2.0, 23.0),  # temp
+    "8548701c-5af7-4d1b-b7ef-1292847ebdc4": (32.0, 77.0),  # humi
+    "5bbc2513-b731-4c18-9548-94129c0351b6": (0.0, 4150.0),  # illu
+}
 
 """ blue sensors
 {

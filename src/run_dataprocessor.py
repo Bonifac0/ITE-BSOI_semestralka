@@ -11,17 +11,24 @@ import aws_handler as aws
 
 # === PROCESSING FUNCTION ===
 def process_data(data):
+    sensor = conf.SENS_HUMI_UUID
+    value = 1212
+    timestamp = "pul ctvrta"
+
     massage = {
-        "type": conf.EP_MEASUREMENTS,
-        "sensor": conf.SENS_HUMI_UUID,
-        "value": 1212,
-        "timestamp": "pul ctvrta",
+        "sensor": sensor,
+        "value": value,
+        "timestamp": timestamp,
     }
-    aws.upload_to_aws(massage)
-    insert_to_mysql(data)
-    notify_local_server()
+    aws.measurement_to_aws(massage)
+
+    if aws.is_alerting(massage):  # podminka pro poslani alertu
+        aws.alert_to_aws(massage)
 
     aws.retry_failed_tasks()
+
+    insert_to_mysql(data)
+    notify_local_server()
 
 
 # === STORE IN MYSQL DATABASE ===
