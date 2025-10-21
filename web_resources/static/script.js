@@ -252,21 +252,7 @@ const renderHistoryView = () => {
         return;
     }
 
-    // Restore chart containers before rendering charts
-    historyView.innerHTML = `
-        <div id="temp-chart-container" class="bg-gray-800 p-6 rounded-2xl shadow-xl transition duration-300 hover:shadow-2xl hover:bg-gray-700/80">
-            <h3 class="text-xl font-semibold mb-4 text-white border-b border-gray-600 pb-2">Temperature Trends (°C)</h3>
-            <div class="chart-container"><canvas id="tempChart"></canvas></div>
-        </div>
-        <div id="hum-chart-container" class="bg-gray-800 p-6 rounded-2xl shadow-xl transition duration-300 hover:shadow-2xl hover:bg-gray-700/80">
-            <h3 class="text-xl font-semibold mb-4 text-white border-b border-gray-600 pb-2">Humidity Trends (%)</h3>
-            <div class="chart-container"><canvas id="humChart"></canvas></div>
-        </div>
-        <div id="light-chart-container" class="bg-gray-800 p-6 rounded-2xl shadow-xl transition duration-300 hover:shadow-2xl hover:bg-gray-700/80">
-            <h3 class="text-xl font-semibold mb-4 text-white border-b border-gray-600 pb-2">Lightness Trends (lux)</h3>
-            <div class="chart-container"><canvas id="lightChart"></canvas></div>
-        </div>
-    `;
+    // Charts are already in index.html, just create the Chart.js instances
 
     createChart('tempChart', 'Temperature', ['temp1', 'temp2', 'temp3', 'temp4', 'temp5'], '°C');
     createChart('humChart', 'Humidity', ['hum1', 'hum2', 'hum3', 'hum4', 'hum5'], '%');
