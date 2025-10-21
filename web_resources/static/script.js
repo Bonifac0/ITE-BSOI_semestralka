@@ -65,7 +65,7 @@ const generateHistoricalData = (count = 20) => {
 const startLiveUpdates = () => {
     socket = new WebSocket(`wss://${window.location.host}/websocket`);
 
-    socket.onmessage = function(event) {
+    socket.onmessage = function (event) {
         const newSensors = JSON.parse(event.data);
         sensors = newSensors;
         const time = new Date();
@@ -377,10 +377,10 @@ const switchView = (view) => {
 
     if (view === 'live') {
         historyView.classList.add('slide-out-right');
-        liveView.classList.remove('hidden', 'slide-out-left');
+        liveView.classList.remove('hidden'); // Remove hidden immediately
         liveView.classList.add('slide-in-left');
         setTimeout(() => {
-            historyView.classList.add('hidden');
+            historyView.classList.add('hidden'); // Add hidden after animation
             historyView.classList.remove('slide-out-right');
             liveView.classList.remove('slide-in-left');
         }, 500);
@@ -388,10 +388,10 @@ const switchView = (view) => {
         startLiveUpdates();
     } else {
         liveView.classList.add('slide-out-left');
-        historyView.classList.remove('hidden', 'slide-out-right');
+        historyView.classList.remove('hidden'); // Remove hidden immediately
         historyView.classList.add('slide-in-right');
         setTimeout(() => {
-            liveView.classList.add('hidden');
+            liveView.classList.add('hidden'); // Add hidden after animation
             liveView.classList.remove('slide-out-left');
             historyView.classList.remove('slide-in-right');
         }, 500);
@@ -424,6 +424,7 @@ window.handleResetSensor = (id) => {
         sensor.status = 'Online';
         sensor.data = { temperature: 22, humidity: 55, lightness: 350 }; // Placeholder
         renderLiveView();
+
     }
 };
 
