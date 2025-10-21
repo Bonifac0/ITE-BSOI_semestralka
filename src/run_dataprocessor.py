@@ -11,6 +11,11 @@ import aws_handler as aws
 
 # === PROCESSING FUNCTION ===
 def process_data(data):
+    # message structure:
+    # {'team_name': string, 'timestamp': string, 'temperature': float, 'humidity': float, 'illumination': float}
+
+    # e.g.: {'team_name': 'white', 'timestamp': '2020-03-24T15:26:05.336974', 'temperature': 25.72, 'humidity': 64.5, 'illumination': 1043}
+
     sensor = conf.SENS_HUMI_UUID
     value = 1212
     timestamp = "pul ctvrta"
@@ -149,3 +154,11 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+# --------------------------------------------
+# topic: ite25/<team_name>
+
+# e.g.: ite25/white
+
+
+# - pokud měříme např. jen teplotu, klíče 'humidity' a 'illumination' ve zprávě nebudou (to je potřeba ošetřit a počítat s tím ve vašich "subscriberech")
