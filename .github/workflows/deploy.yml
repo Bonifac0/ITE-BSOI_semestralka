@@ -49,7 +49,7 @@ jobs:
             } >> deploy_log.txt
 
             sudo systemctl restart itebsoi_webserver
-            sudo systemctl restart itebsoi_dataprocessor
+            # sudo systemctl restart itebsoi_dataprocessor
           "
 
           echo 'Deployment note appended to deploy_log.txt'
