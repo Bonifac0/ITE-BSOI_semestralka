@@ -32,40 +32,45 @@ def process_data(data):
 
     aws.retry_failed_tasks()
 
-    insert_to_mysql(data)
+    insert_to_mariadb(data)
     notify_local_server()
 
 
 # === STORE IN MYSQL DATABASE ===
-def insert_to_mysql(data):
-    """return True if sucessfull"""
-    try:
-        connection = mysql.connector.connect(**conf.MYSQL_CONFIG)
-        cursor = connection.cursor()
-        query = """
-        INSERT INTO sensor_readings (sensor_id, temp_fahrenheit, temp_celsius, processed_at)
-        VALUES (%s, %s, %s, %s)
-        """
-        cursor.execute(
-            query,
-            (
-                data.get("sensor_id"),
-                data.get("temp_fahrenheit"),
-                data.get("temp_celsius"),
-                data.get("processed_at"),
-            ),
-        )
-        connection.commit()
+def value_to_sql(inp: dict) -> str:
+    # input:
+    # {'team_name': string, 'timestamp': string, 'temperature': float, 'humidity': float, 'illumination': float}
+    # output:
+    # (
+    # "INSERT INTO test (team, temperature, humidity, lightness, time) "
+    # f"VALUES ({team_id}, {new_temp}, {new_hum}, {new_light}, '{time_str}');"
+    # )
+    return ""
 
-        print("Data inserted into MySQL database.")
+
+def insert_to_mariadb(data):
+    """Executes a list of SQL statements in a single transaction."""
+    # input
+    # list(dict in form of mqtt return)
+
+    try:
+        for sql in data:
+            cmd = value_to_sql(sql)
+            CURSOR.execute(cmd)
+
+        # Commit the transaction to make the changes permanent
+        MARIADB_CONNECTION.commit()
+        print(
+            f"SUCCESS: Successfully inserted {len(data)} records into the 'test' table."
+        )
         return True
+
     except Error as e:
-        print(f"MySQL error: {e}")
+        print(f"Database Error occurred: {e}")
+        # TODO call reconect function
+
+        # tmp
         return False
-    finally:
-        if "connection" in locals() and connection.is_connected():
-            cursor.close()
-            connection.close()
 
 
 # === NOTIFY LOCAL TORNADO SERVER ===
@@ -127,6 +132,9 @@ def reconnect_mqtt(client, max_delay=300):
 def main():
     conf.check_files()
 
+    # MARIADB====
+
+    # MQTT===
     client = mqtt.Client()
     mgtt_username, mqtt_password, mqtt_url, mqtt_port = conf.load_mqtt_credentials()
     client.username_pw_set(mgtt_username, mqtt_password)
@@ -150,9 +158,17 @@ def main():
         except Exception as e:
             print(f"MQTT connection error: {e}. Reconnecting...")
             reconnect_mqtt(client)
+        finally:
+            if CURSOR:
+                CURSOR.close()
+            if MARIADB_CONNECTION and MARIADB_CONNECTION.is_connected():
+                MARIADB_CONNECTION.close()
 
 
 if __name__ == "__main__":
+    # global, not pretty tho :(
+    MARIADB_CONNECTION = mysql.connector.connect(**conf.MYSQL_CONFIG)
+    CURSOR = MARIADB_CONNECTION.cursor()
     main()
 
 # --------------------------------------------
