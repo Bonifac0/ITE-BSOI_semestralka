@@ -108,8 +108,7 @@ MYSQL_CONFIG = load_mysql_credentials()
 
 # MQTT==============
 MQTT_CREDENTIALS_FILE = "credentials/credentials_mqtt.txt"
-MQTT_TOPIC = "sensors/temperature"
-CA_CERT_PATH = "credentials/ca.crt"
+MQTT_TOPIC = "ite25/practise/blue"
 
 
 def load_mqtt_credentials():
@@ -137,11 +136,13 @@ def load_mqtt_credentials():
     return username, password, url, port
 
 
+BROKER_UNAME, BROKER_PASSWD, BROKER_IP, BROKER_PORT = load_mqtt_credentials()
+
+
 def check_files():
     files_to_check = [
         MQTT_CREDENTIALS_FILE,
         MYSQL_CREDENTIALS_FILE,
-        CA_CERT_PATH,
         FAILED_QUEUE_FILE,
     ]
     for path in files_to_check:

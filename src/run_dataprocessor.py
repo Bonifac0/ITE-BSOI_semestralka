@@ -16,6 +16,8 @@ def process_data(data):
 
     # e.g.: {'team_name': 'white', 'timestamp': '2020-03-24T15:26:05.336974', 'temperature': 25.72, 'humidity': 64.5, 'illumination': 1043}
 
+    insert_to_mariadb(data)
+
     sensor = conf.SENS_HUMI_UUID
     value = 1212
     timestamp = "pul ctvrta"
@@ -32,7 +34,6 @@ def process_data(data):
 
     aws.retry_failed_tasks()
 
-    insert_to_mariadb(data)
     notify_local_server()
 
 
@@ -87,7 +88,15 @@ def notify_local_server():
 
 
 # === MQTT CALLBACKS ===
+# The callback for when the client receives a CONNACK response from the server.
 def on_connect(client, userdata, flags, rc):
+    """
+    print("Connected with result code " + str(rc))
+
+    # Subscribing in on_connect() means that if we lose the connection and
+    # reconnect then subscriptions will be renewed.
+    client.subscribe(conf.MQTT_TOPIC)
+    """
     if rc == 0:
         print("Connected securely to MQTT broker.")
         client.subscribe(conf.MQTT_TOPIC)
@@ -95,25 +104,23 @@ def on_connect(client, userdata, flags, rc):
         print(f"Failed to connect to MQTT broker, return code {rc}")
 
 
-def on_disconnect(client, userdata, rc):
-    print(f"Disconnected from MQTT broker with code {rc}. Attempting reconnect...")
-    reconnect_mqtt(client)
-
-
+# The callback for when a PUBLISH message is received from the server.
 def on_message(client, userdata, msg):
     """When data id added to broker."""
     try:
+        if msg.payload == "Q":
+            client.disconnect()  # dont know if we want this
         payload = msg.payload.decode("utf-8")
-        data = json.loads(payload)
-        print(f"Received data: {data}")
+        print(f"MQTT received data: {payload}")
 
-        process_data(data)
+        # ite25/practise/blue
+
+        process_data(msg)
 
     except Exception as e:
         print(f"Error processing message: {e}")
 
 
-# === RECONNECTION LOGIC ===
 def reconnect_mqtt(client, max_delay=300):
     delay = 1
     while True:
@@ -132,28 +139,15 @@ def reconnect_mqtt(client, max_delay=300):
 def main():
     conf.check_files()
 
-    # MARIADB====
-
     # MQTT===
-    client = mqtt.Client()
-    mgtt_username, mqtt_password, mqtt_url, mqtt_port = conf.load_mqtt_credentials()
-    client.username_pw_set(mgtt_username, mqtt_password)
+    client = mqtt.Client(callback_api_version=mqtt.CallbackAPIVersion.VERSION2)
     client.on_connect = on_connect
-    client.on_disconnect = on_disconnect
     client.on_message = on_message
-
-    print("Connecting securely to MQTT broker...")
-
-    client.tls_set(
-        ca_certs=conf.CA_CERT_PATH,
-        cert_reqs=ssl.CERT_REQUIRED,
-        tls_version=ssl.PROTOCOL_TLSv1_2,
-    )
-    client.tls_insecure_set(False)
+    client.username_pw_set(conf.BROKER_UNAME, password=conf.BROKER_PASSWD)
 
     while True:
         try:
-            client.connect(mqtt_url, mqtt_port, 60)
+            client.connect(conf.BROKER_IP, conf.BROKER_PORT, 60)
             client.loop_forever()
         except Exception as e:
             print(f"MQTT connection error: {e}. Reconnecting...")
