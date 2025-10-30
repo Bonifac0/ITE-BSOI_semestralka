@@ -14,13 +14,7 @@ class PROCESSOR:  # :}
     def terminarot(self):
         """Hasta La vista, baby
         Close all things that need to be closed."""
-        if self.mariaDB.CURSOR:
-            self.mariaDB.CURSOR.close()
-        if (
-            self.mariaDB.MARIADB_CONNECTION
-            and self.mariaDB.MARIADB_CONNECTION.is_connected()
-        ):
-            self.mariaDB.MARIADB_CONNECTION.close()
+        self.mariaDB.close()
 
     def process_data(self, msg):
         """
