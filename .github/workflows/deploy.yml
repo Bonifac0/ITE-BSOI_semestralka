@@ -58,8 +58,9 @@ jobs:
               echo \"=========================================\"
             } >> dataprocessor_error.log
 
-            sudo systemctl --system restart itebsoi_webserver
-            sudo systemctl --system restart itebsoi_dataprocessor
+            sudo systemctl restart itebsoi_webserver
+            sudo systemctl restart itebsoi_dataprocessor
+
           "
 
           echo 'Deployment note appended to deploy_log.txt'
