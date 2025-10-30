@@ -1,6 +1,6 @@
 import requests
-import json
 import re
+import ast  # json module is not enough
 
 
 import aws_handler as aws
@@ -20,49 +20,38 @@ class PROCESSOR:  # :}
         Close all things that need to be closed."""
         self.mariaDB.close()
 
-    def process_data(self, msg):
+    def process_data(self, msg: str):
         """
+        MAIN PROCESSING FUNCTION
+
         message structure:
         {'team_name': string, 'timestamp': string, 'temperature': float, 'humidity': float, 'illumination': float}
 
         e.g.: {'team_name': 'white', 'timestamp': '2020-03-24T15:26:05.336974', 'temperature': 25.72, 'humidity': 64.5, 'illumination': 1043}
         """
         try:
-            payload = json.loads(msg)
+            payload: dict = ast.literal_eval(msg)  # json.loads() is too weak
         except ValueError as e:
             print("Mqtt massage is not json")
             print(msg)
             print(e)
             return False
 
-        if not self.__validate_input(payload):
+        if not self.validate_input(payload):
             print("Data validation failed, skipping.")
             return False
 
-        self.mariaDB.insert_to_mariadb(payload)
+        self.mariaDB.insert_to_mariadb(payload)  # send to our database
 
-        sensor = conf.SENS_HUMI_UUID
-        value = 1212
-        timestamp = "pul ctvrta"
+        if payload["team_name"] == "blue":
+            aws.send_to_aws(payload)
 
-        massage = {
-            "sensor": sensor,
-            "value": value,
-            "timestamp": timestamp,
-        }
-        aws.measurement_to_aws(massage)
-
-        if aws.is_alerting(massage):  # podminka pro poslani alertu
-            aws.alert_to_aws(massage)
-
-        aws.retry_failed_tasks()
-
-        self.notify_local_server()
+        # self.notify_local_server()
 
         return True
 
     @staticmethod
-    def __validate_input(inp: dict) -> bool:
+    def validate_input(inp: dict) -> bool:
         """
         Validates input data.
         Suported format:
@@ -121,7 +110,7 @@ class PROCESSOR:  # :}
 
 
 if __name__ == "__main__":  # for testing
-    val = "{'team_name': 'white', 'timestamp': '2020-03-24T15:26:05.336974', 'temperature': 25.72, 'humidity': 64.5, 'illumination': 1043}"
+    val = "{'team_name': 'blue', 'timestamp': '2020-03-24T15:26:05.336974', 'temperature': 20.72, 'humidity': 64.5, 'illumination': 1043}"
 
     processor = PROCESSOR()
     processor.process_data(val)

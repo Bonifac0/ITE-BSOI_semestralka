@@ -64,6 +64,7 @@ def main():
             reconnect_mqtt(client)
 
 
+# MAIN ENTERY POINT
 if __name__ == "__main__":
     processor = PROCESSOR()
     try:

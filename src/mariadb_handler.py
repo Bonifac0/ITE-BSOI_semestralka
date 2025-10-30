@@ -45,7 +45,7 @@ class mariaDB_handler:
             # self.CURSOR.execute(sql, params)
             # self.MARIADB_CONNECTION.commit()
 
-            print("Record inserted successfully.")
+            print("Record inserted successfully to MariaDB.")
             return True
 
         except Error as e:

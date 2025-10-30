@@ -19,7 +19,7 @@ EP_ALERTS = f"{URI_BASE}/alerts"
 
 def load_aws_credentials():
     with open(AWS_CREDENTIALS_FILE, "r") as f:
-        uuid = f.readline()
+        uuid = f.readline().strip()
 
     if not uuid:
         raise ValueError(
@@ -31,9 +31,12 @@ def load_aws_credentials():
 
 AWS_CREDENTIALS_FILE = "credentials/credentials_aws.txt"
 HEADERS = {"Content-Type": "application/json", "teamUUID": load_aws_credentials()}
-SENS_TEMP_UUID = "43e67eda-67ab-4524-b945-df18cc9d4e44"
-SENS_HUMI_UUID = "8548701c-5af7-4d1b-b7ef-1292847ebdc4"
-SENS_ILLU_UUID = "5bbc2513-b731-4c18-9548-94129c0351b6"
+SENS_UUID = {
+    "temperature": "43e67eda-67ab-4524-b945-df18cc9d4e44",
+    "humidity": "8548701c-5af7-4d1b-b7ef-1292847ebdc4",
+    "illumination": "5bbc2513-b731-4c18-9548-94129c0351b6",
+}
+
 
 SENS_MIN_MAX = {
     "43e67eda-67ab-4524-b945-df18cc9d4e44": (-2.0, 23.0),  # temp

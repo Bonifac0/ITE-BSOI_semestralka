@@ -5,6 +5,26 @@ import json
 import os
 
 
+def send_to_aws(massage):
+    """
+    {'team_name': 'white', 'timestamp': '2020-03-24T15:26:05.336974', 'temperature': 25.72, 'humidity': 64.5, 'illumination': 1043}
+    """
+    for sense in ["temperature", "humidity", "illumination"]:
+        if sense not in massage:  # skip if there is missing sensor
+            continue
+        data = {
+            "sensor": conf.SENS_UUID[sense],
+            "value": massage[sense],
+            "timestamp": massage["timestamp"],
+        }
+
+        measurement_to_aws(data)
+        if is_alerting(data):  # podminka pro poslani alertu
+            alert_to_aws(data)
+
+    retry_failed_tasks()
+
+
 def _post_(ep, body):
     try:
         response = post(ep, dumps(body), headers=conf.HEADERS)
@@ -86,7 +106,7 @@ def retry_failed_tasks():
 
 
 # Create Measurement
-def measurement_to_aws(data):
+def measurement_to_aws(data: dict):
     print(f"Uploading measurement for sensorUUID {data['sensor']}")
 
     payload = {
@@ -106,7 +126,7 @@ def measurement_to_aws(data):
 
 
 # Create Alert
-def alert_to_aws(data):
+def alert_to_aws(data: dict):
     print(f"Uploading alert for sensorUUID {data['sensor']}")
 
     payload = {  # no status
@@ -141,14 +161,14 @@ def read_allerts():  # if someone needs if
         print(alert)
 
 
-def is_alerting(data) -> bool:
+def is_alerting(data: dict) -> bool:
     minimum = conf.SENS_MIN_MAX[data["sensor"]][0]
     maximum = conf.SENS_MIN_MAX[data["sensor"]][1]
     return (minimum > data["value"]) or (data["value"] > maximum)
 
 
 if __name__ == "__main__":  # for testing
-    sensor = conf.SENS_HUMI_UUID
+    sensor = conf.SENS_UUID["humidity"]
     value = 80
     timestamp = "pul ctvrta"
 
