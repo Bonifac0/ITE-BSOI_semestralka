@@ -7,10 +7,11 @@ from processing_fcn import PROCESSOR
 
 # === MQTT CALLBACKS ===
 # The callback for when the client receives a CONNACK response from the server.
-def on_connect(client, userdata, flags, rc):
+def on_connect(client, userdata, flags, rc, properties):
     if rc == 0:
-        print("Connected securely to MQTT broker.")
+        print("Connected to MQTT broker.")
         client.subscribe(conf.MQTT_TOPIC)
+        print("Waiting for massage from publicher")
     else:
         print(f"Failed to connect to MQTT broker, return code {rc}")
 
@@ -19,11 +20,12 @@ def on_connect(client, userdata, flags, rc):
 def on_message(client, userdata, msg):
     """When data id added to broker."""
     try:
-        print(f"MQTT received data: {msg}")
         if msg.payload == "Q":
             client.disconnect()  # dont know if we want this
+        payload = msg.payload.decode("utf-8")
+        print(f"MQTT received data: {payload}")
 
-        processor.process_data(msg)
+        processor.process_data(payload)
 
     except Exception as e:
         print(f"Error processing message: {e}")
@@ -60,18 +62,11 @@ def main():
         except Exception as e:
             print(f"MQTT connection error: {e}. Reconnecting...")
             reconnect_mqtt(client)
-        finally:
-            processor.terminarot()
 
 
 if __name__ == "__main__":
     processor = PROCESSOR()
-    main()
-
-# --------------------------------------------
-# topic: ite25/<team_name>
-
-# e.g.: ite25/white
-
-
-# - pokud měříme např. jen teplotu, klíče 'humidity' a 'illumination' ve zprávě nebudou (to je potřeba ošetřit a počítat s tím ve vašich "subscriberech")
+    try:
+        main()
+    finally:
+        processor.terminarot()

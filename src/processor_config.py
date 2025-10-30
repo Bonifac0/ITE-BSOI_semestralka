@@ -18,11 +18,10 @@ EP_ALERTS = f"{URI_BASE}/alerts"
 
 
 def load_aws_credentials():
-    username, password = None, None
     with open(AWS_CREDENTIALS_FILE, "r") as f:
         uuid = f.readline()
 
-    if not username or not password:
+    if not uuid:
         raise ValueError(
             """Credentials file must contain something like:
             ca75a253-4f03-4c3d-b150-8bce54792d25"""
