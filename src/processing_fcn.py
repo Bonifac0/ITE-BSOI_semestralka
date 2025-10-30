@@ -46,7 +46,7 @@ class PROCESSOR:  # :}
         if payload["team_name"] == "blue":
             aws.send_to_aws(payload)
 
-        # self.notify_local_server()
+        self.notify_local_server()
 
         return True
 
