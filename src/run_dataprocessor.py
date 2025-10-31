@@ -1,109 +1,36 @@
-import json
 import time
-import ssl
-import requests
 import paho.mqtt.client as mqtt
-import mysql.connector
-from mysql.connector import Error
 import processor_config as conf
-import aws_handler as aws
 
-
-# === PROCESSING FUNCTION ===
-def process_data(data):
-    sensor = conf.SENS_HUMI_UUID
-    value = 1212
-    timestamp = "pul ctvrta"
-
-    massage = {
-        "sensor": sensor,
-        "value": value,
-        "timestamp": timestamp,
-    }
-    aws.measurement_to_aws(massage)
-
-    if aws.is_alerting(massage):  # podminka pro poslani alertu
-        aws.alert_to_aws(massage)
-
-    aws.retry_failed_tasks()
-
-    insert_to_mysql(data)
-    notify_local_server()
-
-
-# === STORE IN MYSQL DATABASE ===
-def insert_to_mysql(data):
-    """return True if sucessfull"""
-    try:
-        connection = mysql.connector.connect(**conf.MYSQL_CONFIG)
-        cursor = connection.cursor()
-        query = """
-        INSERT INTO sensor_readings (sensor_id, temp_fahrenheit, temp_celsius, processed_at)
-        VALUES (%s, %s, %s, %s)
-        """
-        cursor.execute(
-            query,
-            (
-                data.get("sensor_id"),
-                data.get("temp_fahrenheit"),
-                data.get("temp_celsius"),
-                data.get("processed_at"),
-            ),
-        )
-        connection.commit()
-
-        print("Data inserted into MySQL database.")
-        return True
-    except Error as e:
-        print(f"MySQL error: {e}")
-        return False
-    finally:
-        if "connection" in locals() and connection.is_connected():
-            cursor.close()
-            connection.close()
-
-
-# === NOTIFY LOCAL TORNADO SERVER ===
-def notify_local_server():
-    notification = '{"note" = ":)"}'
-    try:
-        response = requests.post(conf.TORNADO_NOTIFY_URL, json=notification, timeout=3)
-        if response.status_code == 200:
-            print("Local Tornado server notified.")
-        else:
-            print(f"Tornado server notification failed: {response.status_code}")
-    except Exception as e:
-        print(f"Error notifying Tornado server: {e}")
+from processing_fcn import PROCESSOR
 
 
 # === MQTT CALLBACKS ===
-def on_connect(client, userdata, flags, rc):
+# The callback for when the client receives a CONNACK response from the server.
+def on_connect(client, userdata, flags, rc, properties):
     if rc == 0:
-        print("Connected securely to MQTT broker.")
+        print("Connected to MQTT broker.")
         client.subscribe(conf.MQTT_TOPIC)
+        print("Waiting for massage from publicher")
     else:
         print(f"Failed to connect to MQTT broker, return code {rc}")
 
 
-def on_disconnect(client, userdata, rc):
-    print(f"Disconnected from MQTT broker with code {rc}. Attempting reconnect...")
-    reconnect_mqtt(client)
-
-
+# The callback for when a PUBLISH message is received from the server.
 def on_message(client, userdata, msg):
     """When data id added to broker."""
     try:
+        if msg.payload == "Q":
+            client.disconnect()  # dont know if we want this
         payload = msg.payload.decode("utf-8")
-        data = json.loads(payload)
-        print(f"Received data: {data}")
+        print(f"MQTT received data: {payload}")
 
-        process_data(data)
+        processor.process_data(payload)
 
     except Exception as e:
         print(f"Error processing message: {e}")
 
 
-# === RECONNECTION LOGIC ===
 def reconnect_mqtt(client, max_delay=300):
     delay = 1
     while True:
@@ -122,30 +49,25 @@ def reconnect_mqtt(client, max_delay=300):
 def main():
     conf.check_files()
 
-    client = mqtt.Client()
-    mgtt_username, mqtt_password, mqtt_url, mqtt_port = conf.load_mqtt_credentials()
-    client.username_pw_set(mgtt_username, mqtt_password)
+    # MQTT===
+    client = mqtt.Client(callback_api_version=mqtt.CallbackAPIVersion.VERSION2)
     client.on_connect = on_connect
-    client.on_disconnect = on_disconnect
     client.on_message = on_message
-
-    print("Connecting securely to MQTT broker...")
-
-    client.tls_set(
-        ca_certs=conf.CA_CERT_PATH,
-        cert_reqs=ssl.CERT_REQUIRED,
-        tls_version=ssl.PROTOCOL_TLSv1_2,
-    )
-    client.tls_insecure_set(False)
+    client.username_pw_set(conf.BROKER_UNAME, password=conf.BROKER_PASSWD)
 
     while True:
         try:
-            client.connect(mqtt_url, mqtt_port, 60)
+            client.connect(conf.BROKER_IP, conf.BROKER_PORT, 60)
             client.loop_forever()
         except Exception as e:
             print(f"MQTT connection error: {e}. Reconnecting...")
             reconnect_mqtt(client)
 
 
+# MAIN ENTERY POINT
 if __name__ == "__main__":
-    main()
+    processor = PROCESSOR()
+    try:
+        main()
+    finally:
+        processor.terminarot()

@@ -47,9 +47,20 @@ jobs:
               echo \"Commit hash: \$LAST_COMMIT_HASH\"
               echo \"Commit message: \$LAST_COMMIT_MSG\"
             } >> deploy_log.txt
+            {
+              echo \"=========================================\"
+              echo \"Commit hash: \$LAST_COMMIT_HASH\"
+              echo \"=========================================\"
+            } >> cat dataprocessor.log
+            {
+              echo \"=========================================\"
+              echo \"Commit hash: \$LAST_COMMIT_HASH\"
+              echo \"=========================================\"
+            } >> dataprocessor_error.log
 
             sudo systemctl restart itebsoi_webserver
-            # sudo systemctl restart itebsoi_dataprocessor
+            sudo systemctl restart itebsoi_dataprocessor
+
           "
 
           echo 'Deployment note appended to deploy_log.txt'

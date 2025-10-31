@@ -18,11 +18,10 @@ EP_ALERTS = f"{URI_BASE}/alerts"
 
 
 def load_aws_credentials():
-    username, password = None, None
     with open(AWS_CREDENTIALS_FILE, "r") as f:
-        uuid = f.readline()
+        uuid = f.readline().strip()
 
-    if not username or not password:
+    if not uuid:
         raise ValueError(
             """Credentials file must contain something like:
             ca75a253-4f03-4c3d-b150-8bce54792d25"""
@@ -32,9 +31,12 @@ def load_aws_credentials():
 
 AWS_CREDENTIALS_FILE = "credentials/credentials_aws.txt"
 HEADERS = {"Content-Type": "application/json", "teamUUID": load_aws_credentials()}
-SENS_TEMP_UUID = "43e67eda-67ab-4524-b945-df18cc9d4e44"
-SENS_HUMI_UUID = "8548701c-5af7-4d1b-b7ef-1292847ebdc4"
-SENS_ILLU_UUID = "5bbc2513-b731-4c18-9548-94129c0351b6"
+SENS_UUID = {
+    "temperature": "43e67eda-67ab-4524-b945-df18cc9d4e44",
+    "humidity": "8548701c-5af7-4d1b-b7ef-1292847ebdc4",
+    "illumination": "5bbc2513-b731-4c18-9548-94129c0351b6",
+}
+
 
 SENS_MIN_MAX = {
     "43e67eda-67ab-4524-b945-df18cc9d4e44": (-2.0, 23.0),  # temp
@@ -72,39 +74,43 @@ SENS_MIN_MAX = {
 
 # MySQL============
 def load_mysql_credentials():
-    username, password = None, None
+    output = {
+        "host": "",
+        "user": "",
+        "password": "",
+        "database": "",
+    }
     with open(MYSQL_CREDENTIALS_FILE, "r") as f:
         for line in f:
             line = line.strip()
-            if line.startswith("username="):
-                username = line.split("=", 1)[1].strip()
+            if line.startswith("host="):
+                output["host"] = line.split("=", 1)[1].strip()
+            elif line.startswith("database="):
+                output["database"] = line.split("=", 1)[1].strip()
+            elif line.startswith("username="):
+                output["user"] = line.split("=", 1)[1].strip()
             elif line.startswith("password="):
-                password = line.split("=", 1)[1].strip()
+                output["password"] = line.split("=", 1)[1].strip()
 
-    if not username or not password:
-        raise ValueError(
-            """Credentials file must contain something like:
-            username=franta
-            password=123"""
-        )
-    return username, password
+    for val in output.values():
+        if not val:
+            raise ValueError(
+                """Credentials file must contain something like:
+                host=localhost
+                database=sensors
+                username=franta
+                password=123"""
+            )
+    return output
 
 
 MYSQL_CREDENTIALS_FILE = "credentials/credentials_mysql.txt"
-user, passwd = load_mysql_credentials()
-
-MYSQL_CONFIG = {
-    "host": "localhost",
-    "user": user,
-    "password": passwd,
-    "database": "sensor_data",
-}
+MYSQL_CONFIG = load_mysql_credentials()
 
 
 # MQTT==============
 MQTT_CREDENTIALS_FILE = "credentials/credentials_mqtt.txt"
-MQTT_TOPIC = "sensors/temperature"
-CA_CERT_PATH = "credentials/ca.crt"
+MQTT_TOPIC = "ite25/practise/blue"
 
 
 def load_mqtt_credentials():
@@ -116,7 +122,7 @@ def load_mqtt_credentials():
                 username = line.split("=", 1)[1].strip()
             elif line.startswith("password="):
                 password = line.split("=", 1)[1].strip()
-            elif line.startswith("broker_url="):
+            elif line.startswith("broker_adress="):
                 url = line.split("=", 1)[1].strip()
             elif line.startswith("port="):
                 port = int(line.split("=", 1)[1].strip())
@@ -132,11 +138,13 @@ def load_mqtt_credentials():
     return username, password, url, port
 
 
+BROKER_UNAME, BROKER_PASSWD, BROKER_IP, BROKER_PORT = load_mqtt_credentials()
+
+
 def check_files():
     files_to_check = [
         MQTT_CREDENTIALS_FILE,
         MYSQL_CREDENTIALS_FILE,
-        CA_CERT_PATH,
         FAILED_QUEUE_FILE,
     ]
     for path in files_to_check:
