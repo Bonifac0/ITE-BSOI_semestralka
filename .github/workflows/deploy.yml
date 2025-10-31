@@ -51,7 +51,7 @@ jobs:
               echo \"=========================================\"
               echo \"Commit hash: \$LAST_COMMIT_HASH\"
               echo \"=========================================\"
-            } >> cat dataprocessor.log
+            } >> dataprocessor.log
             {
               echo \"=========================================\"
               echo \"Commit hash: \$LAST_COMMIT_HASH\"
