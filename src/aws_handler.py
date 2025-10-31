@@ -45,6 +45,9 @@ def _post_(ep, body):
             except JSONDecodeError:
                 print("E: Response is not of JSON format.")
                 return {}
+        elif response.status_code == 504:
+            print("    aws is not awake yet")
+            return {}
         else:
             print("E: Status code:", response.status_code)
             return {}
@@ -128,7 +131,7 @@ def measurement_to_aws(data: dict):
 
     responce = _post_(conf.EP_MEASUREMENTS, payload)
     if bool(responce):
-        print(f"Measurement creation successful:\n{responce}")
+        print("    Measurement upload to AWS sucessful")
         return True
     else:
         _add_to_failed_queue("M", data)
@@ -149,7 +152,7 @@ def alert_to_aws(data: dict):
 
     responce = _post_(conf.EP_ALERTS, payload)
     if bool(responce):
-        print(f"    Alert creation successful:\n{responce}")
+        print("    Alert upload to AWS sucessful")
         return True
     else:
         _add_to_failed_queue("A", data)
