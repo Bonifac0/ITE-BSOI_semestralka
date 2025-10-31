@@ -18,7 +18,7 @@ class mariaDB_handler:
             if self.MARIADB_CONNECTION and self.MARIADB_CONNECTION.is_connected():
                 self.MARIADB_CONNECTION.close()
                 self.MARIADB_CONNECTION = None
-            print("MariaDB connection closed.")
+            print("    MariaDB connection closed.")
         except Error as e:
             print(f"Error closing MariaDB connection: {e}")
 
@@ -45,7 +45,7 @@ class mariaDB_handler:
             self.CURSOR.execute(sql, params)
             self.MARIADB_CONNECTION.commit()
 
-            print("Record inserted successfully to MariaDB.")
+            print("    Record inserted successfully to MariaDB.")
             return True
 
         except Error as e:

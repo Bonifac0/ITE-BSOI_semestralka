@@ -9,7 +9,6 @@ from processing_fcn import PROCESSOR
 # The callback for when the client receives a CONNACK response from the server.
 def on_connect(client, userdata, flags, rc, properties):
     if rc == 0:
-        print("Connected to MQTT broker.")
         client.subscribe(conf.MQTT_TOPIC)
         print("Waiting for massage from publicher")
     else:
@@ -23,7 +22,7 @@ def on_message(client, userdata, msg):
         if msg.payload == "Q":
             client.disconnect()  # dont know if we want this
         payload = msg.payload.decode("utf-8")
-        print(f"MQTT received data: {payload}")
+        print(f"    MQTT received data: {payload}")
 
         processor.process_data(payload)
 
@@ -60,12 +59,12 @@ def main():
             client.connect(conf.BROKER_IP, conf.BROKER_PORT, 60)
             client.loop_forever()
         except Exception as e:
-            print(f"MQTT connection error: {e}. Reconnecting...")
             reconnect_mqtt(client)
 
 
 # MAIN ENTERY POINT
 if __name__ == "__main__":
+    print("=====DATAPROCESSOR STRARTING=====")
     processor = PROCESSOR()
     try:
         main()

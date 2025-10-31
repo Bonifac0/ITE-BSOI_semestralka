@@ -101,7 +101,7 @@ def retry_failed_tasks():
     if not queue:
         return
 
-    print(f"Retrying {len(queue)} failed tasks...")
+    print(f"    Retrying {len(queue)} failed tasks...")
     new_queue = []
 
     for type, item in queue:
@@ -117,7 +117,7 @@ def retry_failed_tasks():
 
 # Create Measurement
 def measurement_to_aws(data: dict):
-    print(f"Uploading measurement for sensorUUID {data['sensor']}")
+    print(f"    Uploading measurement for sensorUUID {data['sensor']}")
 
     payload = {
         "createdOn": data["timestamp"],  # format "2022-10-05T13:00:00.000+01:00"
@@ -137,7 +137,7 @@ def measurement_to_aws(data: dict):
 
 # Create Alert
 def alert_to_aws(data: dict):
-    print(f"Uploading alert for sensorUUID {data['sensor']}")
+    print(f"    Uploading alert for sensorUUID {data['sensor']}")
 
     payload = {  # no status
         "createdOn": data["timestamp"],  # format "2022-10-05T13:00:00.000+01:00"
@@ -149,7 +149,7 @@ def alert_to_aws(data: dict):
 
     responce = _post_(conf.EP_ALERTS, payload)
     if bool(responce):
-        print(f"Alert creation successful:\n{responce}")
+        print(f"    Alert creation successful:\n{responce}")
         return True
     else:
         _add_to_failed_queue("A", data)

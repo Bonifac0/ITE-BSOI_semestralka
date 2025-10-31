@@ -1,6 +1,10 @@
 import os
+import re
 
 TORNADO_NOTIFY_URL = "http://localhost:8888/notify"
+
+VALID_TEAMS = {"yellow", "black", "red", "blue", "green"}
+TIMESTAMP_REGEX = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?$")
 
 # Failed queue======
 FAILED_QUEUE_FILE = "failed_queue.json"

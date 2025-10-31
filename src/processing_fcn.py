@@ -1,5 +1,4 @@
 import requests
-import re
 import ast  # json module is not enough
 
 
@@ -9,9 +8,6 @@ from mariadb_handler import mariaDB_handler
 
 
 class PROCESSOR:  # :}
-    VALID_TEAMS = {"yellow", "black", "red", "blue", "green"}
-    TIMESTAMP_REGEX = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?$")
-
     def __init__(self) -> None:
         self.mariaDB = mariaDB_handler()
 
@@ -69,12 +65,12 @@ class PROCESSOR:  # :}
             print(f"Missing required keys: {missing}")
             return False
 
-        if inp["team_name"] not in PROCESSOR.VALID_TEAMS:
+        if inp["team_name"] not in conf.VALID_TEAMS:
             print(f"Invalid team name: {inp['team_name']}")
             return False
 
         # timestamp format check (simple ISO8601 validation)
-        if not PROCESSOR.TIMESTAMP_REGEX.match(inp["timestamp"]):
+        if not conf.TIMESTAMP_REGEX.match(inp["timestamp"]):
             print(f"Invalid timestamp format: {inp['timestamp']}")
             return False
 
@@ -102,7 +98,7 @@ class PROCESSOR:  # :}
                 conf.TORNADO_NOTIFY_URL, json=notification, timeout=3
             )
             if response.status_code == 200:
-                print("Local Tornado server notified.")
+                print("    Local Tornado server notified.")
             else:
                 print(f"Tornado server notification failed: {response.status_code}")
         except Exception as e:
