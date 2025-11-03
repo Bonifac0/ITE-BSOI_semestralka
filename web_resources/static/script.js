@@ -379,6 +379,8 @@ const switchView = (view) => {
         historyView.classList.add('slide-out-right');
         liveView.classList.remove('hidden'); // Remove hidden immediately
         liveView.classList.add('slide-in-left');
+        liveView.style.zIndex = '10'; // Bring liveView to front
+        historyView.style.zIndex = '1'; // Send historyView to back
         setTimeout(() => {
             historyView.classList.add('hidden'); // Add hidden after animation
             historyView.classList.remove('slide-out-right');
@@ -390,28 +392,76 @@ const switchView = (view) => {
         liveView.classList.add('slide-out-left');
         historyView.classList.remove('hidden'); // Remove hidden immediately
         historyView.classList.add('slide-in-right');
+        historyView.style.zIndex = '10'; // Bring historyView to front
+        liveView.style.zIndex = '1'; // Send liveView to back
+        stopLiveUpdates();
+        
         setTimeout(() => {
             liveView.classList.add('hidden'); // Add hidden after animation
             liveView.classList.remove('slide-out-left');
             historyView.classList.remove('slide-in-right');
-        }, 500);
-        stopLiveUpdates();
 
-        if (!historicalData) {
-            fetchHistoricalData();
-        } else {
-            renderHistoryView();
-        }
+            // Render charts after animation to prevent jank
+            if (!historicalData) {
+                fetchHistoricalData();
+            } else {
+                renderHistoryView();
+            }
+        }, 500);
     }
 };
 
 /**
- * Mock API call to fetch historical data.
+ * Fetches historical data from the API and processes it for charting.
  */
 const fetchHistoricalData = async () => {
-    await new Promise(resolve => setTimeout(resolve, 500));
-    historicalData = generateHistoricalData();
-    renderHistoryView();
+    try {
+        const response = await fetch('/api/last1h');
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const rawData = await response.json();
+
+        if (!rawData || rawData.length === 0) {
+            historicalData = [];
+            renderHistoryView();
+            return;
+        }
+
+        // Process data into a format the chart renderer expects
+        const groupedData = {};
+        rawData.forEach(d => {
+            // Note: server should be sending time in ISO format
+            const time = new Date(d.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            if (!groupedData[time]) {
+                groupedData[time] = { time: time };
+                // Initialize with nulls for all 5 potential sensors
+                for (let i = 1; i <= 5; i++) {
+                    groupedData[time]['temp' + i] = null;
+                    groupedData[time]['hum' + i] = null;
+                    groupedData[time]['light' + i] = null;
+                }
+            }
+            // Populate data for the specific sensor ID
+            if (d.id >= 1 && d.id <= 5) {
+                groupedData[time]['temp' + d.id] = d.temperature;
+                groupedData[time]['hum' + d.id] = d.humidity;
+                groupedData[time]['light' + d.id] = d.lightness;
+            }
+        });
+
+        const processedData = Object.values(groupedData).sort((a, b) => {
+            return a.time.localeCompare(b.time);
+        });
+
+        historicalData = processedData;
+
+    } catch (error) {
+        console.error("Could not fetch historical data:", error);
+        historicalData = []; // Set to empty on error to show 'No Records' message
+    } finally {
+        renderHistoryView(); // Always attempt to render, even on failure
+    }
 };
 
 /**

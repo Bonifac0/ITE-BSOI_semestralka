@@ -67,8 +67,6 @@ body::-webkit-scrollbar-thumb {
 /* View switching animations */
 .slide-out-left {
     animation: slide-out-left 0.5s forwards;
-    position: absolute;
-    width: 100%;
 }
 
 .slide-in-right {
@@ -77,12 +75,14 @@ body::-webkit-scrollbar-thumb {
 
 .slide-out-right {
     animation: slide-out-right 0.5s forwards;
-    position: absolute;
-    width: 100%;
 }
 
 .slide-in-left {
     animation: slide-in-left 0.5s forwards;
+}
+
+#history-view {
+    max-height: 80vh;
 }
 
 @keyframes slide-out-left {
