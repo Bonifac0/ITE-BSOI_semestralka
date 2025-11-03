@@ -4,6 +4,7 @@ import json
 import random
 import mysql.connector
 from datetime import datetime, timedelta, date
+import processor_config as conf
 
 
 INDEX_PATH = os.path.join(os.path.dirname(__file__), "..", "web_resources", "index.html")
@@ -11,20 +12,8 @@ CERTIFILE_PATH = "certification/cert.pem"
 KEYFILE_PATH = "certification/key.pem"
 CA_CERTS = "certification/fullchain.pem"
 
-def get_db_config():
-    cred_path = "/workplace/credentials/credentials_mysql.txt"
-    with open(cred_path, 'r') as f:
-        lines = f.read().splitlines()
-        config = {
-            'host': lines[0],
-            'database': lines[1],
-            'user': lines[2],
-            'password': lines[3]
-        }
-    return config
-
 def get_db_connection():
-    conn = mysql.connector.connect(**get_db_config())
+    conn = mysql.connector.connect(**conf.MYSQL_CONFIG)
     return conn
 
 def json_default(o):

@@ -390,13 +390,12 @@ const switchView = (view) => {
         historyView.classList.add('slide-in-right');
         liveView.style.zIndex = '1'; // Send liveView to back
         stopLiveUpdates();
-        
+
         setTimeout(() => {
             liveView.classList.add('hidden'); // Add hidden after animation
             liveView.classList.remove('slide-out-left');
             historyView.classList.remove('slide-in-right');
 
-            // Render charts after animation to prevent jank
             if (!historicalData) {
                 fetchHistoricalData();
             } else {
