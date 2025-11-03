@@ -114,9 +114,6 @@ const renderSensorCard = (sensor) => {
                 <p class="text-red-500 text-lg font-medium mb-4">
                     Sensor Offline / No Data Received
                 </p>
-                <button onclick="handleResetSensor(${sensor.id})" class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition duration-150 shadow-md">
-                    Attempt Reset
-                </button>
             </div>
         `;
     } else {
@@ -462,19 +459,7 @@ const fetchHistoricalData = async () => {
     }
 };
 
-/**
- * Handler for resetting a failed sensor (linked via inline onclick).
- */
-window.handleResetSensor = (id) => {
-    // This is now handled by the server, but we can keep a client-side optimistic update
-    const sensor = sensors.find(s => s.id === id);
-    if (sensor) {
-        sensor.status = 'Online';
-        sensor.data = { temperature: 22, humidity: 55, lightness: 350 }; // Placeholder
-        renderLiveView();
 
-    }
-};
 
 // --- INITIALIZATION ---
 window.onload = function () {
