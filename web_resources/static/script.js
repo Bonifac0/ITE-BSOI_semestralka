@@ -379,7 +379,6 @@ const switchView = (view) => {
         historyView.classList.add('slide-out-right');
         liveView.classList.remove('hidden'); // Remove hidden immediately
         liveView.classList.add('slide-in-left');
-        liveView.style.zIndex = '10'; // Bring liveView to front
         historyView.style.zIndex = '1'; // Send historyView to back
         setTimeout(() => {
             historyView.classList.add('hidden'); // Add hidden after animation
@@ -392,7 +391,6 @@ const switchView = (view) => {
         liveView.classList.add('slide-out-left');
         historyView.classList.remove('hidden'); // Remove hidden immediately
         historyView.classList.add('slide-in-right');
-        historyView.style.zIndex = '10'; // Bring historyView to front
         liveView.style.zIndex = '1'; // Send liveView to back
         stopLiveUpdates();
         

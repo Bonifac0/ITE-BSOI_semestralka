@@ -82,7 +82,7 @@ body::-webkit-scrollbar-thumb {
 }
 
 #history-view {
-    max-height: 80vh;
+    /* Removed max-height to allow full content display and proper scrolling */
 }
 
 @keyframes slide-out-left {
