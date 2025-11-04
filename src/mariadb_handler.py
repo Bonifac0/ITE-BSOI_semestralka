@@ -1,13 +1,13 @@
 from mysql.connector import Error
 import mysql.connector
 import processor_config as conf
+from logger import log
 
 
 class mariaDB_handler:
     def __init__(self):
         self.MARIADB_CONNECTION = mysql.connector.connect(**conf.MYSQL_CONFIG)
         self.CURSOR = self.MARIADB_CONNECTION.cursor()
-        pass
 
     def close(self):
         """Safely close cursor and database connection."""
@@ -18,9 +18,9 @@ class mariaDB_handler:
             if self.MARIADB_CONNECTION and self.MARIADB_CONNECTION.is_connected():
                 self.MARIADB_CONNECTION.close()
                 self.MARIADB_CONNECTION = None
-            print("    MariaDB connection closed.")
+            log("MariaDB connection closed.")
         except Error as e:
-            print(f"Error closing MariaDB connection: {e}")
+            log(f"Error closing MariaDB connection: {e}", level="ERROR")
 
     @staticmethod
     def __value_to_sql(inp: dict):
@@ -45,11 +45,11 @@ class mariaDB_handler:
             self.CURSOR.execute(sql, params)
             self.MARIADB_CONNECTION.commit()
 
-            print("    Record inserted successfully to MariaDB.")
+            log("Record inserted successfully to MariaDB.")
             return True
 
         except Error as e:
-            print(f"Database Error: {e}")
+            log(f"Database Error: {e}", level="ERROR")
             # TODO call reconect function
 
             # tmp

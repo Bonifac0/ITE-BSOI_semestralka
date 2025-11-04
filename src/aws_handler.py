@@ -4,6 +4,7 @@ import processor_config as conf
 import json
 import os
 from datetime import datetime, timezone, timedelta
+from logger import log
 
 
 def send_to_aws(massage: dict):
@@ -43,17 +44,17 @@ def _post_(ep, body):
             try:
                 return response.json()
             except JSONDecodeError:
-                print("E: Response is not of JSON format.")
+                log(f"Response is not of JSON format: {response}", level="ERROR")
                 return {}
         elif response.status_code == 504:
-            print("    aws is not awake yet")
+            log("Aws is not awake yet", level="WARNING")
             return {}
         else:
-            print("E: Status code:", response.status_code)
+            log(f"Status code: {response.status_code}", level="ERROR")
             return {}
 
     except HTTPError as http_err:
-        print("E: HTTP error occurred:", http_err)
+        log(f"HTTP error occurred: {http_err}", level="ERROR")
         return {}
 
 
@@ -65,14 +66,14 @@ def _get_(ep):
             try:
                 return response.json()
             except JSONDecodeError:
-                print("E: Response is not of JSON format.")
+                log(f"Response is not of JSON format: {response}", level="ERROR")
                 return {}
         else:
-            print("E: Status code:", response.status_code)
+            log(f"Status code: {response.status_code}", level="ERROR")
             return {}
 
     except HTTPError as http_err:
-        print("E: HTTP error occurred:", http_err)
+        log(f"HTTP error occurred: {http_err}", level="ERROR")
         return {}
 
 
@@ -81,9 +82,10 @@ def _load_failed_queue():
     if os.path.exists(conf.FAILED_QUEUE_FILE):
         with open(conf.FAILED_QUEUE_FILE, "r") as f:
             try:
-                return json.load(f)
+                content = f.read().strip()
+                return json.loads(content) if content else []
             except json.JSONDecodeError:
-                print("Error parsing failed_queue.json")
+                log("Error parsing failed_queue.json", level="ERROR")
                 return []
     return []
 
@@ -104,7 +106,7 @@ def retry_failed_tasks():
     if not queue:
         return
 
-    print(f"    Retrying {len(queue)} failed tasks...")
+    log(f"Retrying {len(queue)} failed tasks...")
     new_queue = []
 
     for type, item in queue:
@@ -120,7 +122,7 @@ def retry_failed_tasks():
 
 # Create Measurement
 def measurement_to_aws(data: dict):
-    print(f"    Uploading measurement for sensorUUID {data['sensor']}")
+    log(f"Uploading measurement for sensorUUID {data['sensor']}")
 
     payload = {
         "createdOn": data["timestamp"],  # format "2022-10-05T13:00:00.000+01:00"
@@ -131,7 +133,7 @@ def measurement_to_aws(data: dict):
 
     responce = _post_(conf.EP_MEASUREMENTS, payload)
     if bool(responce):
-        print("    Measurement upload to AWS sucessful")
+        log("Measurement upload to AWS sucessful")
         return True
     else:
         _add_to_failed_queue("M", data)
@@ -140,7 +142,7 @@ def measurement_to_aws(data: dict):
 
 # Create Alert
 def alert_to_aws(data: dict):
-    print(f"    Uploading alert for sensorUUID {data['sensor']}")
+    log(f"Uploading alert for sensorUUID {data['sensor']}")
 
     payload = {  # no status
         "createdOn": data["timestamp"],  # format "2022-10-05T13:00:00.000+01:00"
@@ -152,7 +154,7 @@ def alert_to_aws(data: dict):
 
     responce = _post_(conf.EP_ALERTS, payload)
     if bool(responce):
-        print("    Alert upload to AWS sucessful")
+        log("Alert upload to AWS sucessful")
         return True
     else:
         _add_to_failed_queue("A", data)

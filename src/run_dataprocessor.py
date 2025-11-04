@@ -3,6 +3,7 @@ import paho.mqtt.client as mqtt
 import processor_config as conf
 
 from processing_fcn import PROCESSOR
+from logger import log
 
 
 # === MQTT CALLBACKS ===
@@ -10,9 +11,9 @@ from processing_fcn import PROCESSOR
 def on_connect(client, userdata, flags, rc, properties):
     if rc == 0:
         client.subscribe(conf.MQTT_TOPIC)
-        print("Waiting for massage from publicher")
+        log("Waiting for massage from publicher")
     else:
-        print(f"Failed to connect to MQTT broker, return code {rc}")
+        log(f"Failed to connect to MQTT broker, return code {rc}", level="ERROR")
 
 
 # The callback for when a PUBLISH message is received from the server.
@@ -22,25 +23,25 @@ def on_message(client, userdata, msg):
         if msg.payload == "Q":
             client.disconnect()  # dont know if we want this
         payload = msg.payload.decode("utf-8")
-        print(f"    MQTT received data: {payload}")
+        log(f"MQTT received data: {payload}")
 
         processor.process_data(payload)
 
     except Exception as e:
-        print(f"Error processing message: {e}")
+        log(f"Error processing message: {e}", level="ERROR")
 
 
 def reconnect_mqtt(client, max_delay=300):
     delay = 1
     while True:
         try:
-            print(f"Reconnecting to MQTT broker (waiting {delay}s)...")
+            log(f"Reconnecting to MQTT broker (waiting {delay}s)...")
             time.sleep(delay)
             client.reconnect()
-            print("Reconnected to MQTT broker.")
+            log("Reconnected to MQTT broker.")
             return
         except Exception as e:
-            print(f"Reconnect failed: {e}")
+            log(f"Reconnect failed: {e}", level="ERROR")
             delay = min(delay * 2, max_delay)
 
 
@@ -64,7 +65,7 @@ def main():
 
 # MAIN ENTERY POINT
 if __name__ == "__main__":
-    print("=====DATAPROCESSOR STRARTING=====")
+    log("=====DATAPROCESSOR STRARTING=====")
     processor = PROCESSOR()
     try:
         main()

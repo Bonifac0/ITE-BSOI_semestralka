@@ -5,6 +5,7 @@ import ast  # json module is not enough
 import aws_handler as aws
 import processor_config as conf
 from mariadb_handler import mariaDB_handler
+from logger import log
 
 
 class PROCESSOR:  # :}
@@ -28,13 +29,11 @@ class PROCESSOR:  # :}
         try:
             payload: dict = ast.literal_eval(msg)  # json.loads() is too weak
         except ValueError as e:
-            print("Mqtt massage is not json")
-            print(msg)
-            print(e)
+            log(f"Mqtt massage is not json, msg: {msg}\n{e}", level="ERROR")
             return False
 
         if not self.validate_input(payload):
-            print("Data validation failed, skipping.")
+            log("Data validation failed, skipping.", level="WARNING")
             return False
 
         self.mariaDB.insert_to_mariadb(payload)  # send to our database
@@ -62,22 +61,22 @@ class PROCESSOR:  # :}
         required = {"team_name", "timestamp", "temperature"}
         missing = required - inp.keys()
         if missing:
-            print(f"Missing required keys: {missing}")
+            log(f"Missing required keys: {missing}", level="WARNING")
             return False
 
         if inp["team_name"] not in conf.VALID_TEAMS:
-            print(f"Invalid team name: {inp['team_name']}")
+            log(f"Invalid team name: {inp['team_name']}", level="WARNING")
             return False
 
         # timestamp format check (simple ISO8601 validation)
         if not conf.TIMESTAMP_REGEX.match(inp["timestamp"]):
-            print(f"Invalid timestamp format: {inp['timestamp']}")
+            log(f"Invalid timestamp format: {inp['timestamp']}", level="WARNING")
             return False
 
         try:
             float(inp["temperature"])
         except (ValueError, TypeError):
-            print(f"Invalid temperature value: {inp['temperature']}")
+            log(f"Invalid temperature value: {inp['temperature']}", level="WARNING")
             return False
 
         for key in ["humidity", "illumination"]:
@@ -85,7 +84,7 @@ class PROCESSOR:  # :}
                 try:
                     float(inp[key])
                 except (ValueError, TypeError):
-                    print(f"Invalid {key} value: {inp[key]}")
+                    log(f"Invalid {key} value: {inp[key]}", level="WARNING")
                     return False
 
         return True
@@ -98,11 +97,14 @@ class PROCESSOR:  # :}
                 conf.TORNADO_NOTIFY_URL, json=notification, timeout=3
             )
             if response.status_code == 200:
-                print("    Local Tornado server notified.")
+                log("Local Tornado server notified.")
             else:
-                print(f"Tornado server notification failed: {response.status_code}")
+                log(
+                    f"Tornado server notification failed: {response.status_code}",
+                    level="WARNING",
+                )
         except Exception as e:
-            print(f"Error notifying Tornado server: {e}")
+            log(f"Error notifying Tornado server: {e}", level="ERROR")
 
 
 if __name__ == "__main__":  # for testing
