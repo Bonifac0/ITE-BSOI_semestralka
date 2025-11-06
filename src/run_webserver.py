@@ -26,7 +26,7 @@ class LastHourDataHandler(web.RequestHandler):
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
         one_hour_ago = datetime.now() - timedelta(hours=1)
-        query = ("SELECT id, team, temperature, humidity, lightness, time FROM test WHERE time >= %s")
+        query = ("SELECT team, temperature, humidity, lightness, time FROM test WHERE time >= %s")
         cursor.execute(query, (one_hour_ago,))
         results = cursor.fetchall()
         cursor.close()
