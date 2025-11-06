@@ -63,7 +63,8 @@ const generateHistoricalData = (count = 20) => {
 // --- LIVE DATA HANDLING (WEBSOCKET) ---
 
 const startLiveUpdates = () => {
-    socket = new WebSocket(`wss://${window.location.host}/websocket`);
+    // socket = new WebSocket(`wss://${window.location.host}/websocket`);
+    socket = new WebSocket(`wss://aether70.zcu.cz/websocket`);
 
     socket.onmessage = function (event) {
         const newSensors = JSON.parse(event.data);
@@ -182,7 +183,7 @@ const createChart = (canvasId, title, dataKeys, unit) => {
     const ctx = document.getElementById(canvasId).getContext('2d');
     const datasets = dataKeys.map((key, index) => ({
         label: `${sensors[index]?.name || `Sensor ${index + 1}`} ${unit}`,
-        data: historicalData.map(d => d[key].toFixed(2)),
+        data: historicalData.map(d => d[key] !== null ? d[key].toFixed(2) : null),
         borderColor: sensorColors[index],
         backgroundColor: sensorColors[index] + '40', // Semi-transparent fill
         tension: 0.4,
@@ -378,7 +379,19 @@ const switchView = (view) => {
 
     const viewToShow = (view === 'live') ? liveView : historyView;
     const viewToHide = (view === 'live') ? historyView : liveView;
+    const container = document.getElementById('view-container');
 
+    // --- Height Adjustment Logic ---
+    // 1. Make view-to-show renderable but invisible to measure its height
+    viewToShow.style.visibility = 'hidden';
+    viewToShow.classList.remove('hidden');
+    const newHeight = viewToShow.scrollHeight;
+    viewToShow.classList.add('hidden');
+    viewToShow.style.visibility = '';
+    // --- End of Height Adjustment Logic ---
+
+    // Set container height and start exit animation
+    container.style.minHeight = `${newHeight}px`;
     viewToHide.classList.add('view-exit');
 
     setTimeout(() => {
@@ -413,8 +426,17 @@ const switchView = (view) => {
  * Fetches historical data from the API and processes it for charting.
  */
 const fetchHistoricalData = async () => {
+    // Map team names from the DB to the sensor IDs used in the frontend
+    const teamToId = {
+        'blue': 1,
+        'yellow': 2,
+        'green': 3,
+        'red': 4,
+        'black': 5
+    };
+
     try {
-        const response = await fetch('/api/last1h');
+        const response = await fetch('https://aether70.zcu.cz/api/last1h');
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -429,7 +451,6 @@ const fetchHistoricalData = async () => {
         // Process data into a format the chart renderer expects
         const groupedData = {};
         rawData.forEach(d => {
-            // Note: server should be sending time in ISO format
             const time = new Date(d.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             if (!groupedData[time]) {
                 groupedData[time] = { time: time };
@@ -440,16 +461,20 @@ const fetchHistoricalData = async () => {
                     groupedData[time]['light' + i] = null;
                 }
             }
-            // Populate data for the specific sensor ID
-            if (d.id >= 1 && d.id <= 5) {
-                groupedData[time]['temp' + d.id] = d.temperature;
-                groupedData[time]['hum' + d.id] = d.humidity;
-                groupedData[time]['light' + d.id] = d.lightness;
+            // Populate data for the specific sensor using the name-to-ID map
+            const id = teamToId[d.team];
+            if (id) {
+                groupedData[time]['temp' + id] = d.temperature;
+                groupedData[time]['hum' + id] = d.humidity;
+                groupedData[time]['light' + id] = d.lightness;
             }
         });
 
         const processedData = Object.values(groupedData).sort((a, b) => {
-            return a.time.localeCompare(b.time);
+            // Sort by time correctly
+            const timeA = a.time.split(':');
+            const timeB = b.time.split(':');
+            return new Date(0, 0, 0, timeA[0], timeA[1]) - new Date(0, 0, 0, timeB[0], timeB[1]);
         });
 
         historicalData = processedData;
