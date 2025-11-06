@@ -360,9 +360,13 @@ const updateModalChart = (sensorId) => {
  * Switches the active view.
  */
 const switchView = (view) => {
-    if (currentView === view) return;
+    if (currentView === view || liveBtn.disabled) return; // Prevent spam clicking
 
     currentView = view;
+
+    // Disable buttons during transition
+    liveBtn.disabled = true;
+    historyBtn.disabled = true;
 
     liveBtn.className = (view === 'live')
         ? 'px-6 py-2 rounded-full font-medium transition-all duration-200 shadow-lg bg-blue-600 text-white shadow-blue-500/50'
@@ -372,37 +376,37 @@ const switchView = (view) => {
         ? 'px-6 py-2 rounded-full font-medium transition-all duration-200 shadow-lg bg-blue-600 text-white shadow-blue-500/50'
         : 'px-6 py-2 rounded-full font-medium transition-all duration-200 shadow-lg bg-gray-700 text-gray-300 hover:bg-blue-500 hover:text-white';
 
-    if (view === 'live') {
-        historyView.classList.add('slide-out-right');
-        liveView.classList.remove('hidden'); // Remove hidden immediately
-        liveView.classList.add('slide-in-left');
-        historyView.style.zIndex = '1'; // Send historyView to back
-        setTimeout(() => {
-            historyView.classList.add('hidden'); // Add hidden after animation
-            historyView.classList.remove('slide-out-right');
-            liveView.classList.remove('slide-in-left');
-        }, 500);
-        destroyCharts();
-        startLiveUpdates();
-    } else {
-        liveView.classList.add('slide-out-left');
-        historyView.classList.remove('hidden'); // Remove hidden immediately
-        historyView.classList.add('slide-in-right');
-        liveView.style.zIndex = '1'; // Send liveView to back
-        stopLiveUpdates();
+    const viewToShow = (view === 'live') ? liveView : historyView;
+    const viewToHide = (view === 'live') ? historyView : liveView;
 
-        setTimeout(() => {
-            liveView.classList.add('hidden'); // Add hidden after animation
-            liveView.classList.remove('slide-out-left');
-            historyView.classList.remove('slide-in-right');
+    viewToHide.classList.add('view-exit');
 
+    setTimeout(() => {
+        viewToHide.classList.add('hidden');
+        viewToHide.classList.remove('view-exit'); // Cleanup
+
+        viewToShow.classList.remove('hidden');
+        viewToShow.classList.add('view-enter');
+
+        if (view === 'live') {
+            destroyCharts();
+            startLiveUpdates();
+        } else {
+            stopLiveUpdates();
             if (!historicalData) {
                 fetchHistoricalData();
             } else {
                 renderHistoryView();
             }
-        }, 500);
-    }
+        }
+
+        setTimeout(() => {
+            viewToShow.classList.remove('view-enter'); // Cleanup
+            // Re-enable buttons after transition is fully complete
+            liveBtn.disabled = false;
+            historyBtn.disabled = false;
+        }, 500); // Duration of enter animation
+    }, 300); // Duration of exit animation
 };
 
 /**
