@@ -8,6 +8,7 @@ let chartInstances = {}; // To store Chart.js instances
 let socket;
 let sessionData = { 1: [], 2: [], 3: [], 4: [], 5: [] };
 let modalChartInstance = null;
+let currentRange = '1h';
 
 // --- DOM ELEMENTS ---
 const liveBtn = document.getElementById('live-btn');
@@ -20,6 +21,7 @@ const sensorModal = document.getElementById('sensor-modal');
 const modalContent = document.getElementById('modal-content');
 const modalCloseBtn = document.getElementById('modal-close-btn');
 const modalChartContainer = document.getElementById('modal-chart-container');
+const timeRangeSelector = document.getElementById('time-range-selector');
 
 // --- UTILITY FUNCTIONS ---
 
@@ -63,7 +65,6 @@ const generateHistoricalData = (count = 20) => {
 // --- LIVE DATA HANDLING (WEBSOCKET) ---
 
 const startLiveUpdates = () => {
-    // socket = new WebSocket(`wss://${window.location.host}/websocket`);
     socket = new WebSocket(`wss://aether70.zcu.cz/websocket`);
 
     socket.onmessage = function (event) {
@@ -230,27 +231,15 @@ const createChart = (canvasId, title, dataKeys, unit) => {
  */
 const renderHistoryView = () => {
     if (!historicalData) {
-        // Display loading or mock fetching message
-        historyView.innerHTML = `
-            <div class="flex items-center justify-center min-h-[50vh] p-8 text-xl text-blue-400 border-2 border-dashed border-blue-700 rounded-xl bg-gray-800/50">
-                Loading Historical Data...
-            </div>
-        `;
+        historyView.querySelector('#temp-chart-container').innerHTML = '<div class="flex items-center justify-center min-h-[350px] text-xl text-blue-400">Loading Historical Data...</div>';
         return;
     }
 
     if (historicalData.length === 0) {
-        // Edge Case: No Historical Data
-        destroyCharts(); // Ensure no blank charts are showing
-        historyView.innerHTML = `
-            <div class="flex items-center justify-center min-h-[50vh] p-8 text-xl text-yellow-400 border-2 border-dashed border-yellow-700 rounded-xl bg-gray-800/50">
-                No Historical Records Found for this Period.
-            </div>
-        `;
+        destroyCharts();
+        historyView.querySelector('#temp-chart-container').innerHTML = '<div class="flex items-center justify-center min-h-[350px] text-xl text-yellow-400">No Historical Records Found.</div>';
         return;
     }
-
-    // Charts are already in index.html, just create the Chart.js instances
 
     createChart('tempChart', 'Temperature', ['temp1', 'temp2', 'temp3', 'temp4', 'temp5'], '°C');
     createChart('humChart', 'Humidity', ['hum1', 'hum2', 'hum3', 'hum4', 'hum5'], '%');
@@ -357,9 +346,20 @@ const updateModalChart = (sensorId) => {
 
 // --- APPLICATION LOGIC ---
 
-/**
- * Switches the active view.
- */
+const updateActiveRangeButton = (newRange) => {
+    currentRange = newRange;
+    const buttons = timeRangeSelector.querySelectorAll('.time-range-btn');
+    buttons.forEach(button => {
+        if (button.dataset.range === newRange) {
+            button.classList.add('bg-blue-600', 'text-white');
+            button.classList.remove('bg-gray-700', 'text-gray-300', 'hover:bg-gray-600');
+        } else {
+            button.classList.remove('bg-blue-600', 'text-white');
+            button.classList.add('bg-gray-700', 'text-gray-300', 'hover:bg-gray-600');
+        }
+    });
+};
+
 const switchView = (view) => {
     if (currentView === view || liveBtn.disabled) return; // Prevent spam clicking
 
@@ -382,7 +382,6 @@ const switchView = (view) => {
     const container = document.getElementById('view-container');
 
     // --- Height Adjustment Logic ---
-    // 1. Make view-to-show renderable but invisible to measure its height
     viewToShow.style.visibility = 'hidden';
     viewToShow.classList.remove('hidden');
     const newHeight = viewToShow.scrollHeight;
@@ -390,13 +389,12 @@ const switchView = (view) => {
     viewToShow.style.visibility = '';
     // --- End of Height Adjustment Logic ---
 
-    // Set container height and start exit animation
     container.style.minHeight = `${newHeight}px`;
     viewToHide.classList.add('view-exit');
 
     setTimeout(() => {
         viewToHide.classList.add('hidden');
-        viewToHide.classList.remove('view-exit'); // Cleanup
+        viewToHide.classList.remove('view-exit');
 
         viewToShow.classList.remove('hidden');
         viewToShow.classList.add('view-enter');
@@ -407,26 +405,21 @@ const switchView = (view) => {
         } else {
             stopLiveUpdates();
             if (!historicalData) {
-                fetchHistoricalData();
+                fetchHistoricalData(currentRange);
             } else {
                 renderHistoryView();
             }
         }
 
         setTimeout(() => {
-            viewToShow.classList.remove('view-enter'); // Cleanup
-            // Re-enable buttons after transition is fully complete
+            viewToShow.classList.remove('view-enter');
             liveBtn.disabled = false;
             historyBtn.disabled = false;
-        }, 500); // Duration of enter animation
-    }, 300); // Duration of exit animation
+        }, 500);
+    }, 300);
 };
 
-/**
- * Fetches historical data from the API and processes it for charting.
- */
-const fetchHistoricalData = async () => {
-    // Map team names from the DB to the sensor IDs used in the frontend
+const fetchHistoricalData = async (range = '1h') => {
     const teamToId = {
         'blue': 1,
         'yellow': 2,
@@ -436,7 +429,7 @@ const fetchHistoricalData = async () => {
     };
 
     try {
-        const response = await fetch('https://aether70.zcu.cz/api/last1h');
+        const response = await fetch(`https://aether70.zcu.cz/api/history?range=${range}`);
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -444,65 +437,67 @@ const fetchHistoricalData = async () => {
 
         if (!rawData || rawData.length === 0) {
             historicalData = [];
-            renderHistoryView();
-            return;
-        }
-
-        // Process data into a format the chart renderer expects
-        const groupedData = {};
-        rawData.forEach(d => {
-            const time = new Date(d.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            if (!groupedData[time]) {
-                groupedData[time] = { time: time };
-                // Initialize with nulls for all 5 potential sensors
-                for (let i = 1; i <= 5; i++) {
-                    groupedData[time]['temp' + i] = null;
-                    groupedData[time]['hum' + i] = null;
-                    groupedData[time]['light' + i] = null;
+        } else {
+            const groupedData = {};
+            rawData.forEach(d => {
+                const time = new Date(d.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                if (!groupedData[time]) {
+                    groupedData[time] = { time: time };
+                    for (let i = 1; i <= 5; i++) {
+                        groupedData[time]['temp' + i] = null;
+                        groupedData[time]['hum' + i] = null;
+                        groupedData[time]['light' + i] = null;
+                    }
                 }
-            }
-            // Populate data for the specific sensor using the name-to-ID map
-            const id = teamToId[d.team];
-            if (id) {
-                groupedData[time]['temp' + id] = d.temperature;
-                groupedData[time]['hum' + id] = d.humidity;
-                groupedData[time]['light' + id] = d.lightness;
-            }
-        });
+                const id = teamToId[d.team];
+                if (id) {
+                    groupedData[time]['temp' + id] = d.temperature;
+                    groupedData[time]['hum' + id] = d.humidity;
+                    groupedData[time]['light' + id] = d.lightness;
+                }
+            });
 
-        const processedData = Object.values(groupedData).sort((a, b) => {
-            // Sort by time correctly
-            const timeA = a.time.split(':');
-            const timeB = b.time.split(':');
-            return new Date(0, 0, 0, timeA[0], timeA[1]) - new Date(0, 0, 0, timeB[0], timeB[1]);
-        });
-
-        historicalData = processedData;
-
+            historicalData = Object.values(groupedData).sort((a, b) => {
+                const timeA = a.time.split(':');
+                const timeB = b.time.split(':');
+                return new Date(0, 0, 0, timeA[0], timeA[1]) - new Date(0, 0, 0, timeB[0], timeB[1]);
+            });
+        }
     } catch (error) {
         console.error("Could not fetch historical data:", error);
-        historicalData = []; // Set to empty on error to show 'No Records' message
+        historicalData = [];
     } finally {
-        renderHistoryView(); // Always attempt to render, even on failure
+        renderHistoryView();
     }
 };
-
-
 
 // --- INITIALIZATION ---
 window.onload = function () {
     liveBtn.addEventListener('click', () => switchView('live'));
     historyBtn.addEventListener('click', () => switchView('history'));
     modalCloseBtn.addEventListener('click', closeModal);
+
     sensorCardsContainer.addEventListener('click', (e) => {
         const card = e.target.closest('[data-sensor-id]');
         if (card) {
             openModal(card.dataset.sensorId);
         }
     });
+
     sensorModal.addEventListener('click', (e) => {
         if (e.target === sensorModal) {
             closeModal();
+        }
+    });
+
+    timeRangeSelector.addEventListener('click', (e) => {
+        const button = e.target.closest('.time-range-btn');
+        if (button) {
+            const newRange = button.dataset.range;
+            if (newRange !== currentRange) {
+                updateActiveRangeButton(newRange);
+                fetchHistoricalData(newRange);
+            }
         }
     });
 

@@ -44,7 +44,16 @@
             </div>
 
             <!-- Historical Trends View -->
-            <div id="history-view" class="absolute hidden top-0 left-0 w-full space-y-8 p-6">
+                        <div id="history-view" class="absolute hidden top-0 left-0 w-full space-y-8 p-6">
+                <div id="time-range-selector" class="flex flex-wrap justify-center gap-2 mb-8">
+                    <button data-range="1h" class="time-range-btn px-4 py-2 text-sm font-medium rounded-md bg-blue-600 text-white">1 Hour</button>
+                    <button data-range="12h" class="time-range-btn px-4 py-2 text-sm font-medium rounded-md bg-gray-700 text-gray-300 hover:bg-gray-600">12 Hours</button>
+                    <button data-range="1d" class="time-range-btn px-4 py-2 text-sm font-medium rounded-md bg-gray-700 text-gray-300 hover:bg-gray-600">1 Day</button>
+                    <button data-range="7d" class="time-range-btn px-4 py-2 text-sm font-medium rounded-md bg-gray-700 text-gray-300 hover:bg-gray-600">7 Days</button>
+                    <button data-range="1m" class="time-range-btn px-4 py-2 text-sm font-medium rounded-md bg-gray-700 text-gray-300 hover:bg-gray-600">1 Month</button>
+                    <button data-range="all" class="time-range-btn px-4 py-2 text-sm font-medium rounded-md bg-gray-700 text-gray-300 hover:bg-gray-600">All</button>
+                </div>
+
                 <!-- Charts will be injected here -->
                 <div id="temp-chart-container"
                     class="bg-gray-800 p-6 rounded-2xl shadow-xl transition duration-300 hover:shadow-2xl hover:bg-gray-700/80">

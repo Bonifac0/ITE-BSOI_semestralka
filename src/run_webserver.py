@@ -21,13 +21,33 @@ def json_default(o):
         return o.isoformat()
     raise TypeError("Type %s not serializable" % type(o))
 
-class LastHourDataHandler(web.RequestHandler):
+class HistoryDataHandler(web.RequestHandler):
     def get(self):
+        time_range = self.get_argument('range', '1h')
+        now = datetime.now()
+        
+        # Define the start time based on the range parameter
+        if time_range == '12h':
+            start_time = now - timedelta(hours=12)
+        elif time_range == '1d':
+            start_time = now - timedelta(days=1)
+        elif time_range == '7d':
+            start_time = now - timedelta(days=7)
+        elif time_range == '1m':
+            start_time = now - timedelta(days=30)  # Approximation for a month
+        else: # Default to 1h
+            start_time = now - timedelta(hours=1)
+
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
-        one_hour_ago = datetime.now() - timedelta(hours=1)
-        query = ("SELECT team, temperature, humidity, lightness, time FROM test WHERE time >= %s")
-        cursor.execute(query, (one_hour_ago,))
+
+        if time_range == 'all':
+            query = ("SELECT team, temperature, humidity, lightness, time FROM test ORDER BY time ASC")
+            cursor.execute(query)
+        else:
+            query = ("SELECT team, temperature, humidity, lightness, time FROM test WHERE time >= %s ORDER BY time ASC")
+            cursor.execute(query, (start_time,))
+            
         results = cursor.fetchall()
         cursor.close()
         conn.close()
@@ -85,7 +105,7 @@ if __name__ == "__main__":
         (r"/", RootHandler),
         (r"/websocket", SensorSocketHandler),
         (r"/static/(.*)", web.StaticFileHandler, {"path": os.path.join(os.path.dirname(__file__), "..", "web_resources", "static")}),
-        (r"/api/last1h", LastHourDataHandler),
+                (r"/api/history", HistoryDataHandler),
     ])
     server = httpserver.HTTPServer(
         app,
