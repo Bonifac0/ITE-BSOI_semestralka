@@ -44,17 +44,21 @@ def _post_(ep, body):
             try:
                 return response.json()
             except JSONDecodeError:
-                log(f"Response is not of JSON format: {response}", level="ERROR")
+                log(
+                    f"Response is not of JSON format: {response}",
+                    level="ERROR",
+                    category="AWS",
+                )
                 return {}
         elif response.status_code == 504:
             log("Aws is not awake yet", level="WARNING")
             return {}
         else:
-            log(f"Status code: {response.status_code}", level="ERROR")
+            log(f"Status code: {response.status_code}", level="ERROR", category="AWS")
             return {}
 
     except HTTPError as http_err:
-        log(f"HTTP error occurred: {http_err}", level="ERROR")
+        log(f"HTTP error occurred: {http_err}", level="ERROR", category="AWS")
         return {}
 
 
@@ -66,14 +70,18 @@ def _get_(ep):
             try:
                 return response.json()
             except JSONDecodeError:
-                log(f"Response is not of JSON format: {response}", level="ERROR")
+                log(
+                    f"Response is not of JSON format: {response}",
+                    level="ERROR",
+                    category="AWS",
+                )
                 return {}
         else:
-            log(f"Status code: {response.status_code}", level="ERROR")
+            log(f"Status code: {response.status_code}", level="ERROR", category="AWS")
             return {}
 
     except HTTPError as http_err:
-        log(f"HTTP error occurred: {http_err}", level="ERROR")
+        log(f"HTTP error occurred: {http_err}", level="ERROR", category="AWS")
         return {}
 
 
@@ -85,7 +93,7 @@ def _load_failed_queue():
                 content = f.read().strip()
                 return json.loads(content) if content else []
             except json.JSONDecodeError:
-                log("Error parsing failed_queue.json", level="ERROR")
+                log("Error parsing failed_queue.json", level="ERROR", category="AWS")
                 return []
     return []
 
@@ -106,7 +114,7 @@ def retry_failed_tasks():
     if not queue:
         return
 
-    log(f"Retrying {len(queue)} failed tasks...")
+    log(f"Retrying {len(queue)} failed tasks...", category="AWS")
     new_queue = []
 
     for type, item in queue:
@@ -122,7 +130,7 @@ def retry_failed_tasks():
 
 # Create Measurement
 def measurement_to_aws(data: dict):
-    log(f"Uploading measurement for sensorUUID {data['sensor']}")
+    log(f"Uploading measurement for sensorUUID {data['sensor']}", category="AWS")
 
     payload = {
         "createdOn": data["timestamp"],  # format "2022-10-05T13:00:00.000+01:00"
@@ -133,7 +141,7 @@ def measurement_to_aws(data: dict):
 
     responce = _post_(conf.EP_MEASUREMENTS, payload)
     if bool(responce):
-        log("Measurement upload to AWS sucessful")
+        log("Measurement upload to AWS sucessful", category="AWS")
         return True
     else:
         _add_to_failed_queue("M", data)
@@ -142,7 +150,7 @@ def measurement_to_aws(data: dict):
 
 # Create Alert
 def alert_to_aws(data: dict):
-    log(f"Uploading alert for sensorUUID {data['sensor']}")
+    log(f"Uploading alert for sensorUUID {data['sensor']}", category="AWS")
 
     payload = {  # no status
         "createdOn": data["timestamp"],  # format "2022-10-05T13:00:00.000+01:00"
@@ -154,7 +162,7 @@ def alert_to_aws(data: dict):
 
     responce = _post_(conf.EP_ALERTS, payload)
     if bool(responce):
-        log("Alert upload to AWS sucessful")
+        log("Alert upload to AWS sucessful", category="AWS")
         return True
     else:
         _add_to_failed_queue("A", data)

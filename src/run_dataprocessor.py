@@ -11,9 +11,13 @@ from logger import log
 def on_connect(client, userdata, flags, rc, properties):
     if rc == 0:
         client.subscribe(conf.MQTT_TOPIC)
-        log("Waiting for massage from publicher")
+        log("Waiting for massage from publicher", category="MQTT")
     else:
-        log(f"Failed to connect to MQTT broker, return code {rc}", level="ERROR")
+        log(
+            f"Failed to connect to MQTT broker, return code {rc}",
+            level="ERROR",
+            category="MQTT",
+        )
 
 
 # The callback for when a PUBLISH message is received from the server.
@@ -23,25 +27,25 @@ def on_message(client, userdata, msg):
         if msg.payload == "Q":
             client.disconnect()  # dont know if we want this
         payload = msg.payload.decode("utf-8")
-        log(f"MQTT received data: {payload}")
+        log(f"MQTT received data: {payload}", category="MQTT")
 
         processor.process_data(payload)
 
     except Exception as e:
-        log(f"Error processing message: {e}", level="ERROR")
+        log(f"Error processing message: {e}", level="ERROR", category="MQTT")
 
 
 def reconnect_mqtt(client, max_delay=300):
     delay = 1
     while True:
         try:
-            log(f"Reconnecting to MQTT broker (waiting {delay}s)...")
+            log(f"Reconnecting to MQTT broker (waiting {delay}s)...", category="MQTT")
             time.sleep(delay)
             client.reconnect()
-            log("Reconnected to MQTT broker.")
+            log("Reconnected to MQTT broker.", category="MQTT")
             return
         except Exception as e:
-            log(f"Reconnect failed: {e}", level="ERROR")
+            log(f"Reconnect failed: {e}", level="ERROR", category="MQTT")
             delay = min(delay * 2, max_delay)
 
 

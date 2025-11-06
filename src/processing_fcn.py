@@ -33,7 +33,11 @@ class PROCESSOR:  # :}
             return False
 
         if not self.validate_input(payload):
-            log("Data validation failed, skipping.", level="WARNING")
+            log(
+                "Data validation failed, skipping.",
+                level="WARNING",
+                category="VALIDATOR",
+            )
             return False
 
         self.mariaDB.insert_to_mariadb(payload)  # send to our database
@@ -61,22 +65,38 @@ class PROCESSOR:  # :}
         required = {"team_name", "timestamp", "temperature"}
         missing = required - inp.keys()
         if missing:
-            log(f"Missing required keys: {missing}", level="WARNING")
+            log(
+                f"Missing required keys: {missing}",
+                level="WARNING",
+                category="VALIDATOR",
+            )
             return False
 
         if inp["team_name"] not in conf.VALID_TEAMS:
-            log(f"Invalid team name: {inp['team_name']}", level="WARNING")
+            log(
+                f"Invalid team name: {inp['team_name']}",
+                level="WARNING",
+                category="VALIDATOR",
+            )
             return False
 
         # timestamp format check (simple ISO8601 validation)
         if not conf.TIMESTAMP_REGEX.match(inp["timestamp"]):
-            log(f"Invalid timestamp format: {inp['timestamp']}", level="WARNING")
+            log(
+                f"Invalid timestamp format: {inp['timestamp']}",
+                level="WARNING",
+                category="VALIDATOR",
+            )
             return False
 
         try:
             float(inp["temperature"])
         except (ValueError, TypeError):
-            log(f"Invalid temperature value: {inp['temperature']}", level="WARNING")
+            log(
+                f"Invalid temperature value: {inp['temperature']}",
+                level="WARNING",
+                category="VALIDATOR",
+            )
             return False
 
         for key in ["humidity", "illumination"]:
@@ -84,7 +104,11 @@ class PROCESSOR:  # :}
                 try:
                     float(inp[key])
                 except (ValueError, TypeError):
-                    log(f"Invalid {key} value: {inp[key]}", level="WARNING")
+                    log(
+                        f"Invalid {key} value: {inp[key]}",
+                        level="WARNING",
+                        category="VALIDATOR",
+                    )
                     return False
 
         return True
@@ -97,14 +121,19 @@ class PROCESSOR:  # :}
                 conf.TORNADO_NOTIFY_URL, json=notification, timeout=3
             )
             if response.status_code == 200:
-                log("Local Tornado server notified.")
+                log("Local Tornado server notified.", category="TORNADO")
             else:
                 log(
                     f"Tornado server notification failed: {response.status_code}",
                     level="WARNING",
+                    category="TORNADO",
                 )
         except Exception as e:
-            log(f"Error notifying Tornado server: {e}", level="ERROR")
+            log(
+                f"Error notifying Tornado server: {e}",
+                level="ERROR",
+                category="TORNADO",
+            )
 
 
 if __name__ == "__main__":  # for testing

@@ -18,9 +18,9 @@ class mariaDB_handler:
             if self.MARIADB_CONNECTION and self.MARIADB_CONNECTION.is_connected():
                 self.MARIADB_CONNECTION.close()
                 self.MARIADB_CONNECTION = None
-            log("MariaDB connection closed.")
+            log("MariaDB connection closed.", category="DB")
         except Error as e:
-            log(f"Error closing MariaDB connection: {e}", level="ERROR")
+            log(f"Error closing MariaDB connection: {e}", level="ERROR", category="DB")
 
     @staticmethod
     def __value_to_sql(inp: dict):
@@ -45,11 +45,11 @@ class mariaDB_handler:
             self.CURSOR.execute(sql, params)
             self.MARIADB_CONNECTION.commit()
 
-            log("Record inserted successfully to MariaDB.")
+            log("Record inserted successfully to MariaDB.", category="DB")
             return True
 
         except Error as e:
-            log(f"Database Error: {e}", level="ERROR")
+            log(f"Database Error: {e}", level="ERROR", category="DB")
             # TODO call reconect function
 
             # tmp
