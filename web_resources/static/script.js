@@ -187,10 +187,6 @@ const createChart = (canvasId, title, dataKeys, unit) => {
         chartInstances[canvasId].destroy();
         delete chartInstances[canvasId];
     }
-    
-    // Restore the canvas element each time to clear any "No Data" message
-    chartContainer.innerHTML = `<canvas id="${canvasId}"></canvas>`;
-    const ctx = document.getElementById(canvasId).getContext('2d');
 
     const datasets = dataKeys.map((key, index) => ({
         label: `${sensors[index]?.name || `Sensor ${index + 1}`} ${unit}`,
@@ -202,14 +198,14 @@ const createChart = (canvasId, title, dataKeys, unit) => {
         yAxisID: 'y',
     }));
 
-    // Check if there is any valid data point across all datasets for this chart
     const hasData = datasets.some(ds => ds.data.some(point => point !== null));
 
     if (!hasData) {
         chartContainer.innerHTML = `<div class="flex items-center justify-center h-full min-h-[350px] text-xl text-yellow-400">No Records Found for this Period.</div>`;
         return;
     }
-
+    
+    const ctx = document.getElementById(canvasId).getContext('2d');
     chartInstances[canvasId] = new Chart(ctx, {
         type: 'line',
         data: {
@@ -243,16 +239,23 @@ const createChart = (canvasId, title, dataKeys, unit) => {
  * Renders the Historical Trends view content.
  */
 const renderHistoryView = () => {
-    // If data is null, it means we are loading. Show a loading message in all chart containers.
+    const tempContainer = document.getElementById('temp-chart-container').querySelector('.chart-container');
+    const humContainer = document.getElementById('hum-chart-container').querySelector('.chart-container');
+    const lightContainer = document.getElementById('light-chart-container').querySelector('.chart-container');
+
     if (historicalData === null) {
         const loadingHTML = '<div class="flex items-center justify-center min-h-[350px] text-xl text-blue-400">Loading Historical Data...</div>';
-        document.getElementById('temp-chart-container').querySelector('.chart-container').innerHTML = loadingHTML;
-        document.getElementById('hum-chart-container').querySelector('.chart-container').innerHTML = loadingHTML;
-        document.getElementById('light-chart-container').querySelector('.chart-container').innerHTML = loadingHTML;
+        tempContainer.innerHTML = loadingHTML;
+        humContainer.innerHTML = loadingHTML;
+        lightContainer.innerHTML = loadingHTML;
         return;
     }
 
-    // Let createChart handle all rendering, including the "no data" case for each chart.
+    // Restore canvas elements before attempting to create charts
+    tempContainer.innerHTML = '<canvas id="tempChart"></canvas>';
+    humContainer.innerHTML = '<canvas id="humChart"></canvas>';
+    lightContainer.innerHTML = '<canvas id="lightChart"></canvas>';
+
     createChart('tempChart', 'Temperature', ['temp1', 'temp2', 'temp3', 'temp4', 'temp5'], '°C');
     createChart('humChart', 'Humidity', ['hum1', 'hum2', 'hum3', 'hum4', 'hum5'], '%');
     createChart('lightChart', 'Lightness', ['light1', 'light2', 'light3', 'light4', 'light5'], 'lux');
@@ -411,16 +414,12 @@ const switchView = (view) => {
         viewToShow.classList.remove('hidden');
         viewToShow.classList.add('view-enter');
 
-        if (view === 'live') {
+                if (view === 'live') {
             destroyCharts();
             startLiveUpdates();
         } else {
             stopLiveUpdates();
-            if (!historicalData) {
-                fetchHistoricalData(currentRange);
-            } else {
-                renderHistoryView();
-            }
+            fetchHistoricalData(currentRange);
         }
 
         setTimeout(() => {
