@@ -181,20 +181,33 @@ const destroyCharts = () => {
  * Creates a Chart.js line chart.
  */
 const createChart = (canvasId, title, dataKeys, unit) => {
+    const chartContainer = document.getElementById(canvasId).parentElement;
+
+    if (chartInstances[canvasId]) {
+        chartInstances[canvasId].destroy();
+        delete chartInstances[canvasId];
+    }
+    
+    // Restore the canvas element each time to clear any "No Data" message
+    chartContainer.innerHTML = `<canvas id="${canvasId}"></canvas>`;
     const ctx = document.getElementById(canvasId).getContext('2d');
+
     const datasets = dataKeys.map((key, index) => ({
         label: `${sensors[index]?.name || `Sensor ${index + 1}`} ${unit}`,
         data: historicalData.map(d => d[key] !== null ? d[key].toFixed(2) : null),
         borderColor: sensorColors[index],
-        backgroundColor: sensorColors[index] + '40', // Semi-transparent fill
+        backgroundColor: sensorColors[index] + '40',
         tension: 0.4,
         pointRadius: 3,
         yAxisID: 'y',
     }));
 
-    // Destroy previous instance if it exists
-    if (chartInstances[canvasId]) {
-        chartInstances[canvasId].destroy();
+    // Check if there is any valid data point across all datasets for this chart
+    const hasData = datasets.some(ds => ds.data.some(point => point !== null));
+
+    if (!hasData) {
+        chartContainer.innerHTML = `<div class="flex items-center justify-center h-full min-h-[350px] text-xl text-yellow-400">No Records Found for this Period.</div>`;
+        return;
     }
 
     chartInstances[canvasId] = new Chart(ctx, {
@@ -230,17 +243,16 @@ const createChart = (canvasId, title, dataKeys, unit) => {
  * Renders the Historical Trends view content.
  */
 const renderHistoryView = () => {
-    if (!historicalData) {
-        historyView.querySelector('#temp-chart-container').innerHTML = '<div class="flex items-center justify-center min-h-[350px] text-xl text-blue-400">Loading Historical Data...</div>';
+    // If data is null, it means we are loading. Show a loading message in all chart containers.
+    if (historicalData === null) {
+        const loadingHTML = '<div class="flex items-center justify-center min-h-[350px] text-xl text-blue-400">Loading Historical Data...</div>';
+        document.getElementById('temp-chart-container').querySelector('.chart-container').innerHTML = loadingHTML;
+        document.getElementById('hum-chart-container').querySelector('.chart-container').innerHTML = loadingHTML;
+        document.getElementById('light-chart-container').querySelector('.chart-container').innerHTML = loadingHTML;
         return;
     }
 
-    if (historicalData.length === 0) {
-        destroyCharts();
-        historyView.querySelector('#temp-chart-container').innerHTML = '<div class="flex items-center justify-center min-h-[350px] text-xl text-yellow-400">No Historical Records Found.</div>';
-        return;
-    }
-
+    // Let createChart handle all rendering, including the "no data" case for each chart.
     createChart('tempChart', 'Temperature', ['temp1', 'temp2', 'temp3', 'temp4', 'temp5'], '°C');
     createChart('humChart', 'Humidity', ['hum1', 'hum2', 'hum3', 'hum4', 'hum5'], '%');
     createChart('lightChart', 'Lightness', ['light1', 'light2', 'light3', 'light4', 'light5'], 'lux');
@@ -420,6 +432,9 @@ const switchView = (view) => {
 };
 
 const fetchHistoricalData = async (range = '1h') => {
+    historicalData = null; // Set to null to indicate loading
+    renderHistoryView();   // Trigger the loading message
+
     const teamToId = {
         'blue': 1,
         'yellow': 2,
