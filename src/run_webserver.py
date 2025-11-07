@@ -5,7 +5,6 @@ import random
 import mysql.connector
 from datetime import datetime, timedelta, date
 import processor_config as conf
-from src.logger import log
 
 
 INDEX_PATH = os.path.join(os.path.dirname(__file__), "..", "web_resources", "index.html")
@@ -25,7 +24,7 @@ def json_default(o):
 class NewDataHandler(web.RequestHandler):
     def get(self):
         print("New data requested from ip:", self.request.remote_ip, "with args:", self.request.arguments)
-        #self.write("New data response from server.", self.request.remote_ip, "with args:", self.request.arguments)
+        self.write("New data response from server.", self.request.remote_ip, "with args:", self.request.arguments)
 
 class HistoryDataHandler(web.RequestHandler):
     def get(self):
