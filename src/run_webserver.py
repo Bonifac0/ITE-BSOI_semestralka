@@ -21,6 +21,10 @@ def json_default(o):
         return o.isoformat()
     raise TypeError("Type %s not serializable" % type(o))
 
+class NewDataHandler(web.RequestHandler):
+    def get(self):
+        print("History data requested from ip:", self.request.remote_ip, "with args:", self.request.arguments)
+
 class HistoryDataHandler(web.RequestHandler):
     def get(self):
         time_range = self.get_argument('range', '1h')
@@ -105,7 +109,8 @@ if __name__ == "__main__":
         (r"/", RootHandler),
         (r"/websocket", SensorSocketHandler),
         (r"/static/(.*)", web.StaticFileHandler, {"path": os.path.join(os.path.dirname(__file__), "..", "web_resources", "static")}),
-                (r"/api/history", HistoryDataHandler),
+        (r"/api/history", HistoryDataHandler),
+        (r"/api/newData", NewDataHandler)
     ])
     server = httpserver.HTTPServer(
         app,

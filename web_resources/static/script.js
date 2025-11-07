@@ -112,7 +112,7 @@ const renderSensorCard = (sensor) => {
     let content;
     if (isOffline) {
         content = `
-            <div class="text-center py-10">
+            <div class="text-center py-4">
                 <p class="text-red-500 text-lg font-medium mb-4">
                     Sensor Offline / No Data Received
                 </p>
@@ -204,7 +204,7 @@ const createChart = (canvasId, title, dataKeys, unit) => {
         chartContainer.innerHTML = `<div class="flex items-center justify-center h-full min-h-[350px] text-xl text-yellow-400">No Records Found for this Period.</div>`;
         return;
     }
-    
+
     const ctx = document.getElementById(canvasId).getContext('2d');
     chartInstances[canvasId] = new Chart(ctx, {
         type: 'line',
@@ -414,7 +414,7 @@ const switchView = (view) => {
         viewToShow.classList.remove('hidden');
         viewToShow.classList.add('view-enter');
 
-                if (view === 'live') {
+        if (view === 'live') {
             destroyCharts();
             startLiveUpdates();
         } else {
