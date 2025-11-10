@@ -7,6 +7,21 @@ from datetime import datetime, timedelta, date
 import processor_config as conf
 import hashlib
 import uuid
+import cv2
+import numpy as np
+import base64
+from urllib.request import urlopen
+
+def recognize(image_array):
+    """
+    This function will be implemented by the user.
+    It takes a numpy array (the image) and should return a string with the user's name or 'unknown'.
+    """
+    # For now, it returns a default value.
+    print("Placeholder recognize function called.")
+    return "unknown"
+
+# --- Hashing Utility ---
 
 INDEX_PATH = os.path.join(os.path.dirname(__file__), "..", "web_resources", "index.html")
 LOGIN_PATH = os.path.join(os.path.dirname(__file__), "..", "web_resources", "login.html")
@@ -226,6 +241,64 @@ class SensorSocketHandler(websocket.WebSocketHandler):
 
 
 
+class FaceLoginHandler(BaseHandler):
+    def post(self):
+        try:
+            body = json.loads(self.request.body)
+            image_data_url = body['image']
+            typed_username = body['username']
+        except (json.JSONDecodeError, KeyError):
+            self.set_status(400)
+            self.write({"error": "Invalid request format"})
+            return
+
+        try:
+            # Decode the base64 image
+            header, encoded = image_data_url.split(",", 1)
+            image_bytes = base64.b64decode(encoded)
+            
+            # Convert to numpy array
+            nparr = np.frombuffer(image_bytes, np.uint8)
+            image_array = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+        except Exception as e:
+            self.set_status(400)
+            self.write({"error": f"Could not process image data: {e}"})
+            return
+
+        # Call the placeholder recognition function
+        recognized_name = recognize(image_array)
+
+        # Check if recognition was successful and matches the typed username
+        if recognized_name != "unknown" and recognized_name.lower() == typed_username.lower():
+            # Successful login, create session
+            conn = get_db_connection()
+            cursor = conn.cursor(dictionary=True)
+            query = "SELECT * FROM users WHERE username = %s"
+            cursor.execute(query, (typed_username,))
+            user = cursor.fetchone()
+
+            if user:
+                session_id = str(uuid.uuid4())
+                expires_at = datetime.now() + timedelta(days=7)
+                
+                insert_query = "INSERT INTO sessions (session_id, user_id, expires_at) VALUES (%s, %s, %s)"
+                cursor.execute(insert_query, (session_id, user['id'], expires_at))
+                conn.commit()
+                
+                self.set_secure_cookie("session_id", session_id, expires_days=7)
+                self.write({"status": "success"})
+            else:
+                self.set_status(401)
+                self.write({"error": "User not found in database"})
+
+            cursor.close()
+            conn.close()
+        else:
+            # Failed login
+            self.set_status(401)
+            self.write({"error": "Face not recognized or does not match username"})
+
+
 if __name__ == "__main__":
     print("Server is starting")
     check_files()
@@ -234,6 +307,7 @@ if __name__ == "__main__":
         (r"/login", LoginRenderHandler),
         (r"/login_action", LoginActionHandler),
         (r"/logout", LogoutHandler),
+        (r"/api/face_login", FaceLoginHandler),
         (r"/websocket", SensorSocketHandler),
         (r"/static/(.*)", web.StaticFileHandler, {"path": os.path.join(os.path.dirname(__file__), "..", "web_resources", "static")}),
         (r"/api/history", HistoryDataHandler),
