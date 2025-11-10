@@ -40,7 +40,7 @@ const startLiveUpdates = () => {
 
         if (message.type === 'initial_data') {
             const initialRecords = message.payload;
-            
+
             // Process all initial records
             initialRecords.forEach(record => {
                 const id = teamToId[record.team.toLowerCase()];
@@ -110,7 +110,7 @@ const checkSensorStatus = () => {
     let needsRender = false;
 
     sensors.forEach(sensor => {
-        const newStatus = (sensor.lastUpdate && sensor.lastUpdate > fiveMinutesAgo) ? 'Online' : 'Offline';
+        const newStatus = (sensor.lastUpdate && sensor.lastUpdate < fiveMinutesAgo) ? 'Online' : 'Offline';
         if (sensor.status !== newStatus) {
             sensor.status = newStatus;
             needsRender = true;
@@ -201,7 +201,7 @@ const createChart = (canvasId, title, dataKeys, unit) => {
         chartContainer.innerHTML = `<div class="flex items-center justify-center h-full min-h-[350px] text-xl text-yellow-400">No Records Found for this Period.</div>`;
         return;
     }
-    
+
     const ctx = document.getElementById(canvasId).getContext('2d');
     chartInstances[canvasId] = new Chart(ctx, {
         type: 'line',
@@ -309,7 +309,7 @@ const updateModalChart = (sensorId) => {
         createModalChart(sensorId);
         return;
     }
-    
+
     const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000);
     const chartData = sessionData[sensorId].filter(d => d.time > tenMinutesAgo);
 
