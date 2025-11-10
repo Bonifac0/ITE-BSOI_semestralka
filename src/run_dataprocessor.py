@@ -1,6 +1,6 @@
 import time
 import paho.mqtt.client as mqtt
-import processor_config as conf
+import config as conf
 
 from processing_fcn import PROCESSOR
 from logger import log

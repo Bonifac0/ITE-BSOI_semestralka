@@ -1,6 +1,6 @@
 from requests import get, post, HTTPError
 from json import dumps, JSONDecodeError
-import processor_config as conf
+import config as conf
 import json
 import os
 from datetime import datetime, timezone, timedelta

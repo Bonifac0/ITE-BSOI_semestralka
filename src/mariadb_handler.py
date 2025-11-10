@@ -1,6 +1,6 @@
 from mysql.connector import Error
 import mysql.connector
-import processor_config as conf
+import config as conf
 from logger import log
 
 

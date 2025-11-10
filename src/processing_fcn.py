@@ -3,7 +3,7 @@ import ast  # json module is not enough
 
 
 import aws_handler as aws
-import processor_config as conf
+import config as conf
 from mariadb_handler import mariaDB_handler
 from logger import log
 
