@@ -126,7 +126,7 @@ const renderSensorCard = (sensor) => {
     const borderColor = isOffline ? '#DC2626' : color;
 
     let content;
-    if (isOffline) {
+    if (isOffline || !sensor.data) {
         content = `
             <div class="text-center py-4">
                 <p class="text-red-500 text-lg font-medium mb-4">
@@ -135,24 +135,28 @@ const renderSensorCard = (sensor) => {
             </div>
         `;
     } else {
+        const temp = sensor.data.temperature;
+        const hum = sensor.data.humidity;
+        const light = sensor.data.lightness;
+
         content = `
             <div class="grid grid-cols-3 2xl:grid-cols-2 gap-4 place-content-center">
                 <div class="flex flex-col items-center">
                     <p class="text-gray-400 text-sm mb-1">Temp</p>
                     <div class="text-3xl font-bold transition-all duration-500" style="color: ${color}">
-                        ${sensor.data.temperature.toFixed(1)}°C
+                        ${temp.toFixed(1)}°C
                     </div>
                 </div>
                 <div class="flex flex-col items-center">
                     <p class="text-gray-400 text-sm mb-1">Humidity</p>
                     <div class="text-3xl font-bold transition-all duration-500" style="color: ${color}">
-                        ${sensor.data.humidity.toFixed(0)}%
+                        ${hum !== null && hum !== undefined ? hum.toFixed(0) + '%' : '--'}
                     </div>
                 </div>
                 <div class="flex flex-col items-center 2xl:col-span-2">
                     <p class="text-gray-400 text-sm mb-1">Lightness</p>
                     <div class="text-3xl font-bold transition-all duration-500" style="color: ${color}">
-                        ${sensor.data.lightness.toFixed(0)} lux
+                        ${light !== null && light !== undefined ? light.toFixed(0) + ' lux' : '--'}
                     </div>
                 </div>
             </div>
