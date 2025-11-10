@@ -342,8 +342,13 @@ const switchView = (view) => {
     liveBtn.disabled = true;
     historyBtn.disabled = true;
 
-    liveBtn.className = (view === 'live') ? 'px-6 py-2 rounded-full font-medium ...' : '...';
-    historyBtn.className = (view === 'history') ? 'px-6 py-2 rounded-full font-medium ...' : '...';
+    liveBtn.className = (view === 'live')
+        ? 'px-6 py-2 rounded-full font-medium transition-all duration-200 shadow-lg bg-blue-600 text-white shadow-blue-500/50'
+        : 'px-6 py-2 rounded-full font-medium transition-all duration-200 shadow-lg bg-gray-700 text-gray-300 hover:bg-blue-500 hover:text-white';
+
+    historyBtn.className = (view === 'history')
+        ? 'px-6 py-2 rounded-full font-medium transition-all duration-200 shadow-lg bg-blue-600 text-white shadow-blue-500/50'
+        : 'px-6 py-2 rounded-full font-medium transition-all duration-200 shadow-lg bg-gray-700 text-gray-300 hover:bg-blue-500 hover:text-white';
 
     const viewToShow = (view === 'live') ? liveView : historyView;
     const viewToHide = (view === 'live') ? historyView : liveView;
