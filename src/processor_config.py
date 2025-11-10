@@ -121,12 +121,11 @@ def load_cookie_credentials():
             if line.startswith("cookie="):
                 output = line.split("=", 1)[1].strip()
 
-    for val in output.values():
-        if not val:
-            raise ValueError(
-                """Credentials file must contain something like:
-                cookie=some_cookie_value"""
-            )
+    if not output:
+        raise ValueError(
+            """Credentials file must contain something like:
+            cookie=some_cookie_value"""
+        )
     return output
 
 
