@@ -84,27 +84,27 @@ class RootHandler(web.RequestHandler):
 
 class SensorSocketHandler(websocket.WebSocketHandler):
     clients = set()
-    initial_sensors = [
-        {'id': 1, 'name': 'Blue Team', 'data': {'temperature': 0, 'humidity': 0, 'lightness': 0}, 'status': 'Offline'},
-        {'id': 2, 'name': 'Yellow Team', 'data': {'temperature': 0, 'humidity': 0, 'lightness': 0}, 'status': 'Offline'},
-        {'id': 3, 'name': 'Green Team', 'data': {'temperature': 0, 'humidity': 0, 'lightness': 0}, 'status': 'Offline'},
-        {'id': 4, 'name': 'Red Team', 'data': {'temperature': 0, 'humidity': 0, 'lightness': 0}, 'status': 'Offline'},
-        {'id': 5, 'name': 'Black Team', 'data': {'temperature': 0, 'humidity': 0, 'lightness': 0}, 'status': 'Offline'},
-    ]
     team_map = {
-        'blue': 1,
-        'yellow': 2,
-        'green': 3,
-        'red': 4,
-        'black': 5
+        'blue': 1, 'yellow': 2, 'green': 3, 'red': 4, 'black': 5
     }
 
     def open(self):
         SensorSocketHandler.clients.add(self)
-        # On connection, send the current state of all sensors
+        
+        # Query DB for the last 3 minutes of data to send as initial state
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        three_minutes_ago = datetime.now() - timedelta(minutes=3)
+        query = ("SELECT team, temperature, humidity, lightness, time FROM test WHERE time >= %s ORDER BY time ASC")
+        cursor.execute(query, (three_minutes_ago,))
+        results = cursor.fetchall()
+        cursor.close()
+        conn.close()
+
+        # The initial message contains all data points from the last 3 minutes
         initial_message = {
-            "type": "full_state",
-            "payload": SensorSocketHandler.initial_sensors
+            "type": "initial_data",
+            "payload": results
         }
         self.write_message(json.dumps(initial_message, default=json_default))
 
@@ -113,28 +113,29 @@ class SensorSocketHandler(websocket.WebSocketHandler):
 
     @classmethod
     def broadcast_single_update(cls, record):
+        # This method now just formats the DB record and broadcasts it.
         team_name_lower = record['team'].lower()
         sensor_id = cls.team_map.get(team_name_lower)
         
         if sensor_id is not None:
-            # Find the sensor in our state and update it
-            for sensor in cls.initial_sensors:
-                if sensor['id'] == sensor_id:
-                    sensor['status'] = 'Online'
-                    sensor['data'] = {
-                        'temperature': record['temperature'],
-                        'humidity': record['humidity'],
-                        'lightness': record['lightness'],
-                    }
-                    # Prepare the message to broadcast
-                    update_message = {
-                        "type": "update",
-                        "payload": sensor
-                    }
-                    # Broadcast to all clients
-                    for client in cls.clients:
-                        client.write_message(json.dumps(update_message, default=json_default))
-                    break # Exit loop once sensor is found and updated
+            # The payload is the raw record from the DB, plus the sensor ID.
+            payload = {
+                'id': sensor_id,
+                'team': record['team'],
+                'time': record['time'],
+                'data': {
+                    'temperature': record['temperature'],
+                    'humidity': record['humidity'],
+                    'lightness': record['lightness'],
+                }
+            }
+            update_message = {
+                "type": "update",
+                "payload": payload
+            }
+            
+            for client in cls.clients:
+                client.write_message(json.dumps(update_message, default=json_default))
 
 
 

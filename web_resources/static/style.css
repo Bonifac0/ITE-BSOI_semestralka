@@ -47,6 +47,7 @@ body::-webkit-scrollbar-thumb {
         transform: scale(0.9);
         opacity: 0;
     }
+
     to {
         transform: scale(1);
         opacity: 1;
@@ -58,6 +59,7 @@ body::-webkit-scrollbar-thumb {
         transform: scale(1);
         opacity: 1;
     }
+
     to {
         transform: scale(0.9);
         opacity: 0;
@@ -73,14 +75,12 @@ body::-webkit-scrollbar-thumb {
     animation: fade-slide-in 0.5s ease-in-out forwards;
 }
 
-#history-view {
-    /* Removed max-height to allow full content display and proper scrolling */
-}
 
 @keyframes fade-out {
     from {
         opacity: 1;
     }
+
     to {
         opacity: 0;
     }
@@ -91,6 +91,7 @@ body::-webkit-scrollbar-thumb {
         opacity: 0;
         transform: translateY(20px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
