@@ -22,7 +22,7 @@ def json_default(o):
     raise TypeError("Type %s not serializable" % type(o))
 
 class NewDataHandler(web.RequestHandler):
-    def get(self):
+    def post(self):
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
         query = ("SELECT team, temperature, humidity, lightness, time FROM test ORDER BY time DESC LIMIT 1")
