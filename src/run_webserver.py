@@ -23,8 +23,19 @@ def json_default(o):
 
 class NewDataHandler(web.RequestHandler):
     def get(self):
-        print("New data requested from ip:", self.request.remote_ip, "with args:", self.request.arguments)
-        self.write("New data response from server.", self.request.remote_ip, "with args:", self.request.arguments)
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        query = ("SELECT team, temperature, humidity, lightness, time FROM test ORDER BY time DESC LIMIT 1")
+        cursor.execute(query)
+        latest_record = cursor.fetchone()
+        cursor.close()
+        conn.close()
+
+        if latest_record:
+            SensorSocketHandler.broadcast_single_update(latest_record)
+        
+        self.write({"status": "ok"})
+
 
 class HistoryDataHandler(web.RequestHandler):
     def get(self):
@@ -74,33 +85,57 @@ class RootHandler(web.RequestHandler):
 class SensorSocketHandler(websocket.WebSocketHandler):
     clients = set()
     initial_sensors = [
-        {'id': 1, 'name': 'Blue Team', 'data': {'temperature': 25.5, 'humidity': 45, 'lightness': 300}, 'status': 'Online'},
-        {'id': 2, 'name': 'Yellow Team', 'data': {'temperature': 23.1, 'humidity': 55, 'lightness': 450}, 'status': 'Online'},
-        {'id': 3, 'name': 'Green Team', 'data': None, 'status': 'Offline'},
-        {'id': 4, 'name': 'Red Team', 'data': {'temperature': 28.9, 'humidity': 40, 'lightness': 600}, 'status': 'Online'},
-        {'id': 5, 'name': 'Black Team', 'data': None, 'status': 'Offline'},
+        {'id': 1, 'name': 'Blue Team', 'data': {'temperature': 0, 'humidity': 0, 'lightness': 0}, 'status': 'Offline'},
+        {'id': 2, 'name': 'Yellow Team', 'data': {'temperature': 0, 'humidity': 0, 'lightness': 0}, 'status': 'Offline'},
+        {'id': 3, 'name': 'Green Team', 'data': {'temperature': 0, 'humidity': 0, 'lightness': 0}, 'status': 'Offline'},
+        {'id': 4, 'name': 'Red Team', 'data': {'temperature': 0, 'humidity': 0, 'lightness': 0}, 'status': 'Offline'},
+        {'id': 5, 'name': 'Black Team', 'data': {'temperature': 0, 'humidity': 0, 'lightness': 0}, 'status': 'Offline'},
     ]
+    team_map = {
+        'blue': 1,
+        'yellow': 2,
+        'green': 3,
+        'red': 4,
+        'black': 5
+    }
 
     def open(self):
         SensorSocketHandler.clients.add(self)
-        self.write_message(json.dumps(SensorSocketHandler.initial_sensors))
+        # On connection, send the current state of all sensors
+        initial_message = {
+            "type": "full_state",
+            "payload": SensorSocketHandler.initial_sensors
+        }
+        self.write_message(json.dumps(initial_message, default=json_default))
 
     def on_close(self):
         SensorSocketHandler.clients.remove(self)
 
     @classmethod
-    def send_updates(cls):
-        for client in cls.clients:
-            client.write_message(json.dumps(cls.generate_sensor_data()))
+    def broadcast_single_update(cls, record):
+        team_name_lower = record['team'].lower()
+        sensor_id = cls.team_map.get(team_name_lower)
+        
+        if sensor_id is not None:
+            # Find the sensor in our state and update it
+            for sensor in cls.initial_sensors:
+                if sensor['id'] == sensor_id:
+                    sensor['status'] = 'Online'
+                    sensor['data'] = {
+                        'temperature': record['temperature'],
+                        'humidity': record['humidity'],
+                        'lightness': record['lightness'],
+                    }
+                    # Prepare the message to broadcast
+                    update_message = {
+                        "type": "update",
+                        "payload": sensor
+                    }
+                    # Broadcast to all clients
+                    for client in cls.clients:
+                        client.write_message(json.dumps(update_message, default=json_default))
+                    break # Exit loop once sensor is found and updated
 
-    @classmethod
-    def generate_sensor_data(cls):
-        for sensor in cls.initial_sensors:
-            if sensor['status'] == 'Online' and sensor['data']:
-                sensor['data']['temperature'] += random.uniform(-0.25, 0.25)
-                sensor['data']['humidity'] += random.uniform(-0.5, 0.5)
-                sensor['data']['lightness'] += random.uniform(-5, 5)
-        return cls.initial_sensors
 
 
 if __name__ == "__main__":
@@ -122,5 +157,4 @@ if __name__ == "__main__":
         },
     )
     server.listen(443)
-    ioloop.PeriodicCallback(SensorSocketHandler.send_updates, 2000).start()
     ioloop.IOLoop.instance().start()

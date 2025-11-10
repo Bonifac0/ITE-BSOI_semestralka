@@ -68,23 +68,39 @@ const startLiveUpdates = () => {
     socket = new WebSocket(`wss://aether70.zcu.cz/websocket`);
 
     socket.onmessage = function (event) {
-        const newSensors = JSON.parse(event.data);
-        sensors = newSensors;
-        const time = new Date();
+        const message = JSON.parse(event.data);
 
-        newSensors.forEach(sensor => {
-            if (sensor.status === 'Online') {
-                sessionData[sensor.id].push({ ...sensor.data, time });
-                if (sessionData[sensor.id].length > 100) { // Limit data points
-                    sessionData[sensor.id].shift();
+        if (message.type === 'full_state') {
+            sensors = message.payload;
+        } else if (message.type === 'update') {
+            const updatedSensor = message.payload;
+            
+            // Add the new data to the session data for the modal chart
+            if (updatedSensor.status === 'Online') {
+                const time = new Date();
+                sessionData[updatedSensor.id].push({ ...updatedSensor.data, time });
+                if (sessionData[updatedSensor.id].length > 100) { // Limit data points
+                    sessionData[updatedSensor.id].shift();
                 }
             }
-        });
+
+            // Update the main sensors array
+            sensors = sensors.map(sensor => {
+                if (sensor.id === updatedSensor.id) {
+                    return updatedSensor; // Replace the sensor with the new data
+                }
+                return sensor;
+            });
+        }
 
         renderLiveView();
+
+        // Update the modal chart if it's open and showing the sensor that was just updated
         if (!sensorModal.classList.contains('hidden')) {
-            const sensorId = modalContent.dataset.sensorId;
-            updateModalChart(sensorId);
+            const sensorId = parseInt(modalContent.dataset.sensorId, 10);
+            if (message.type === 'update' && message.payload.id === sensorId) {
+                updateModalChart(sensorId);
+            }
         }
     };
 };

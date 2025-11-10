@@ -1,7 +1,7 @@
 import os
 import re
 
-TORNADO_NOTIFY_URL = "http://localhost:8888/notify"
+TORNADO_NOTIFY_URL = "https://localhost/api/newData"
 
 VALID_TEAMS = {"yellow", "black", "red", "blue", "green"}
 TIMESTAMP_REGEX = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?$")
