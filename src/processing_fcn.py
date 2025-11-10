@@ -45,8 +45,9 @@ class PROCESSOR:  # :}
         if payload["team_name"] == "blue":
             aws.send_to_aws(payload)
 
-        self.notify_local_server()
+        self.notify_local_server(payload)
 
+        log("Waiting for next massage")
         return True
 
     @staticmethod
@@ -113,13 +114,10 @@ class PROCESSOR:  # :}
 
         return True
 
-    def notify_local_server(self):
+    def notify_local_server(self, payload):
         """NOTIFY LOCAL TORNADO SERVER"""
-        notification = '{"note" = ":)"}'
         try:
-            response = requests.post(
-                conf.TORNADO_NOTIFY_URL, json=notification, timeout=3
-            )
+            response = requests.post(conf.TORNADO_NOTIFY_URL, json=payload, timeout=3)
             if response.status_code == 200:
                 log("Local Tornado server notified.", category="TORNADO")
             else:
