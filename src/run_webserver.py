@@ -5,9 +5,11 @@ import random
 import mysql.connector
 from datetime import datetime, timedelta, date
 import processor_config as conf
-
+import hashlib
+import uuid
 
 INDEX_PATH = os.path.join(os.path.dirname(__file__), "..", "web_resources", "index.html")
+LOGIN_PATH = os.path.join(os.path.dirname(__file__), "..", "web_resources", "login.html")
 CERTIFILE_PATH = "certification/cert.pem"
 KEYFILE_PATH = "certification/key.pem"
 CA_CERTS = "certification/fullchain.pem"
@@ -20,6 +22,39 @@ def json_default(o):
     if isinstance(o, (datetime, date)):
         return o.isoformat()
     raise TypeError("Type %s not serializable" % type(o))
+
+def hash_password(password):
+    """Hashes a password using SHA256."""
+    return hashlib.sha256(password.encode()).hexdigest()
+
+# --- Base Handler for User Authentication ---
+class BaseHandler(web.RequestHandler):
+    def get_current_user(self):
+        session_id = self.get_secure_cookie("session_id")
+        if not session_id:
+            return None
+
+        try:
+            conn = get_db_connection()
+            cursor = conn.cursor(dictionary=True)
+            
+            query = "SELECT * FROM sessions WHERE session_id = %s AND expires_at > NOW()"
+            cursor.execute(query, (session_id.decode(),))
+            session = cursor.fetchone()
+            
+            if not session:
+                return None
+
+            query = "SELECT id, username FROM users WHERE id = %s"
+            cursor.execute(query, (session['user_id'],))
+            user = cursor.fetchone()
+            return user
+        finally:
+            if 'cursor' in locals() and cursor:
+                cursor.close()
+            if 'conn' in locals() and conn.is_connected():
+                conn.close()
+
 
 class NewDataHandler(web.RequestHandler):
     def post(self):
@@ -37,8 +72,13 @@ class NewDataHandler(web.RequestHandler):
         self.write({"status": "ok"})
 
 
-class HistoryDataHandler(web.RequestHandler):
+class HistoryDataHandler(BaseHandler):
     def get(self):
+        if not self.get_current_user():
+            self.set_status(403)
+            self.write({"error": "Forbidden"})
+            return
+        
         time_range = self.get_argument('range', '1h')
         now = datetime.now()
         
@@ -77,9 +117,56 @@ def check_files():
             raise FileNotFoundError(f"File '{path}' does not exist.")
 
 
-class RootHandler(web.RequestHandler):
+class RootHandler(BaseHandler):
     def get(self):
-        self.render(INDEX_PATH)
+        current_user = self.get_current_user()
+        self.render(INDEX_PATH, is_logged_in=(current_user is not None))
+
+class LoginRenderHandler(web.RequestHandler):
+    def get(self):
+        self.render(LOGIN_PATH, error=None)
+
+class LoginActionHandler(BaseHandler):
+    def post(self):
+        username = self.get_argument("username")
+        password = self.get_argument("password")
+        
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        query = "SELECT * FROM users WHERE username = %s"
+        cursor.execute(query, (username,))
+        user = cursor.fetchone()
+
+        if user and user['password_hash'] == hash_password(password):
+            session_id = str(uuid.uuid4())
+            expires_at = datetime.now() + timedelta(days=7)
+            
+            insert_query = "INSERT INTO sessions (session_id, user_id, expires_at) VALUES (%s, %s, %s)"
+            cursor.execute(insert_query, (session_id, user['id'], expires_at))
+            conn.commit()
+            
+            self.set_secure_cookie("session_id", session_id, expires_days=7)
+            self.redirect("/")
+        else:
+            self.render(LOGIN_PATH, error="Invalid username or password")
+        
+        cursor.close()
+        conn.close()
+
+class LogoutHandler(BaseHandler):
+    def get(self):
+        session_id = self.get_secure_cookie("session_id")
+        if session_id:
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            query = "DELETE FROM sessions WHERE session_id = %s"
+            cursor.execute(query, (session_id.decode(),))
+            conn.commit()
+            cursor.close()
+            conn.close()
+        
+        self.clear_cookie("session_id")
+        self.redirect("/login")
 
 
 class SensorSocketHandler(websocket.WebSocketHandler):
@@ -144,11 +231,14 @@ if __name__ == "__main__":
     check_files()
     app = web.Application([
         (r"/", RootHandler),
+        (r"/login", LoginRenderHandler),
+        (r"/login_action", LoginActionHandler),
+        (r"/logout", LogoutHandler),
         (r"/websocket", SensorSocketHandler),
         (r"/static/(.*)", web.StaticFileHandler, {"path": os.path.join(os.path.dirname(__file__), "..", "web_resources", "static")}),
         (r"/api/history", HistoryDataHandler),
-        (r"/api/newData", NewDataHandler)
-    ])
+        (r"/api/newData", NewDataHandler),
+    ], cookie_secret=conf.COOKIE_CONFIG)
     server = httpserver.HTTPServer(
         app,
         ssl_options={

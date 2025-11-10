@@ -15,7 +15,14 @@
 
 <body class="min-h-screen bg-gray-900 text-gray-100 p-4 sm:p-8 font-sans flex flex-col">
 
-    <header class="mb-10 text-center">
+        <header class="relative mb-10 text-center">
+        <div class="absolute top-0 right-0 p-4">
+            {% if is_logged_in %}
+                <a href="/logout" class="px-4 py-2 text-sm font-medium rounded-md bg-gray-700 text-gray-300 hover:bg-gray-600">Logout</a>
+            {% else %}
+                <a href="/login" class="px-4 py-2 text-sm font-medium rounded-md bg-blue-600 text-white hover:bg-blue-700">Login</a>
+            {% end %}
+        </div>
         <h1 class="text-4xl font-extrabold text-white mb-2 tracking-tight">Blue Team Sensor Dashboard</h1>
         <p class="text-gray-400">Real-time data visualization for 5 environment sensor sets.</p>
     </header>
@@ -26,10 +33,12 @@
             class="px-6 py-2 rounded-full font-medium transition-all duration-200 shadow-lg bg-blue-600 text-white shadow-blue-500/50">
             Live Data
         </button>
+        {% if is_logged_in %}
         <button id="history-btn"
             class="px-6 py-2 rounded-full font-medium transition-all duration-200 shadow-lg bg-gray-700 text-gray-300 hover:bg-blue-500 hover:text-white">
             Historical Trends
         </button>
+        {% end %}
     </div>
 
     <!-- Content Area -->

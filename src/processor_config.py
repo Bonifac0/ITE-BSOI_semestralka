@@ -112,6 +112,27 @@ MYSQL_CREDENTIALS_FILE = "credentials/credentials_mysql.txt"
 MYSQL_CONFIG = load_mysql_credentials()
 
 
+# COOKIE==============
+def load_cookie_credentials():
+    output = ""
+    with open(COOKIE_CREDENTIALS_FILE, "r") as f:
+        for line in f:
+            line = line.strip()
+            if line.startswith("cookie="):
+                output = line.split("=", 1)[1].strip()
+
+    for val in output.values():
+        if not val:
+            raise ValueError(
+                """Credentials file must contain something like:
+                cookie=some_cookie_value"""
+            )
+    return output
+
+
+COOKIE_CREDENTIALS_FILE = "credentials/credentials_cookie.txt"
+COOKIE_CONFIG = load_cookie_credentials()
+
 # MQTT==============
 MQTT_CREDENTIALS_FILE = "credentials/credentials_mqtt.txt"
 MQTT_TOPIC = "ite25/practise/blue"

@@ -110,7 +110,7 @@ const checkSensorStatus = () => {
     let needsRender = false;
 
     sensors.forEach(sensor => {
-        const newStatus = (sensor.lastUpdate && sensor.lastUpdate < fiveMinutesAgo) ? 'Online' : 'Offline';
+        const newStatus = (sensor.lastUpdate && sensor.lastUpdate > fiveMinutesAgo) ? 'Online' : 'Offline';
         if (sensor.status !== newStatus) {
             sensor.status = newStatus;
             needsRender = true;
@@ -434,7 +434,9 @@ const fetchHistoricalData = async (range = '1h') => {
 // --- INITIALIZATION ---
 window.onload = function () {
     liveBtn.addEventListener('click', () => switchView('live'));
-    historyBtn.addEventListener('click', () => switchView('history'));
+    if (historyBtn) {
+        historyBtn.addEventListener('click', () => switchView('history'));
+    }
     modalCloseBtn.addEventListener('click', closeModal);
 
     sensorCardsContainer.addEventListener('click', (e) => {
