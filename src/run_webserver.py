@@ -109,28 +109,52 @@ class HistoryDataHandler(BaseHandler):
         time_range = self.get_argument("range", "1h")
         now = datetime.now()
 
-        # Define the start time based on the range parameter
+        # Define the aggregation interval and start time based on the range parameter
+        agg_interval_seconds = None
         if time_range == "12h":
             start_time = now - timedelta(hours=12)
+            agg_interval_seconds = 5 * 60  # 5 minutes
         elif time_range == "1d":
             start_time = now - timedelta(days=1)
+            agg_interval_seconds = 15 * 60  # 15 minutes
         elif time_range == "7d":
             start_time = now - timedelta(days=7)
+            agg_interval_seconds = 60 * 60  # 1 hour
         elif time_range == "1m":
-            start_time = now - timedelta(days=30)  # Approximation for a month
+            start_time = now - timedelta(days=30)
+            agg_interval_seconds = 6 * 60 * 60  # 6 hours
+        elif time_range == "all":
+            start_time = None
+            agg_interval_seconds = 24 * 60 * 60  # 1 day
         else:  # Default to 1h
             start_time = now - timedelta(hours=1)
 
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
 
-        if time_range == "all":
-            query = "SELECT team, temperature, humidity, lightness, time FROM test ORDER BY time ASC"
-            cursor.execute(query)
+        params = []
+        if start_time:
+            params.append(start_time)
+
+        if agg_interval_seconds:
+            # The query uses integer division on UNIX timestamps to group records into time intervals.
+            # It calculates the average for temperature, humidity, and lightness.
+            query = f"""
+                SELECT
+                    team,
+                    AVG(temperature) as temperature,
+                    AVG(humidity) as humidity,
+                    AVG(lightness) as lightness,
+                    FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(time) / {agg_interval_seconds}) * {agg_interval_seconds}) as time
+                FROM test
+                {'WHERE time >= %s' if start_time else ''}
+                GROUP BY team, FLOOR(UNIX_TIMESTAMP(time) / {agg_interval_seconds})
+                ORDER BY time ASC
+            """
         else:
             query = "SELECT team, temperature, humidity, lightness, time FROM test WHERE time >= %s ORDER BY time ASC"
-            cursor.execute(query, (start_time,))
 
+        cursor.execute(query, tuple(params))
         results = cursor.fetchall()
         cursor.close()
         conn.close()

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,14 +9,15 @@
     <link rel="stylesheet" href="static/style.css">
     <link rel="icon" type="image/x-icon" href="static/favicon.png">
 </head>
+
 <body class="min-h-screen bg-gray-900 text-gray-100 flex items-center justify-center p-4">
 
-        <div class="w-full max-w-md">
+    <div class="w-full max-w-md">
         <form method="post" action="/login_action" class="bg-gray-800 shadow-2xl rounded-2xl px-8 pt-6 pb-8 mb-4">
             <div class="mb-8 text-center">
                 <h1 class="text-3xl font-extrabold text-white">Dashboard Login</h1>
             </div>
-            
+
             {% if error %}
             <div class="bg-red-800 border border-red-600 text-red-100 px-4 py-3 rounded-lg relative mb-6" role="alert">
                 <span class="block sm:inline">{{ error }}</span>
@@ -26,13 +28,17 @@
                 <label class="block text-gray-400 text-sm font-bold mb-2" for="username">
                     Username
                 </label>
-                <input class="shadow-inner appearance-none border rounded-lg w-full py-3 px-4 bg-gray-700 border-gray-600 text-gray-100 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500" id="username" name="username" type="text" placeholder="Username" required>
+                <input
+                    class="shadow-inner appearance-none border rounded-lg w-full py-3 px-4 bg-gray-700 border-gray-600 text-gray-100 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    id="username" name="username" type="text" placeholder="Username" required>
             </div>
             <div class="mb-6">
                 <label class="block text-gray-400 text-sm font-bold mb-2" for="password">
                     Password
                 </label>
-                <input class="shadow-inner appearance-none border rounded-lg w-full py-3 px-4 bg-gray-700 border-gray-600 text-gray-100 mb-3 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500" id="password" name="password" type="password" placeholder="******************">
+                <input
+                    class="shadow-inner appearance-none border rounded-lg w-full py-3 px-4 bg-gray-700 border-gray-600 text-gray-100 mb-3 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    id="password" name="password" type="password" placeholder="******************">
             </div>
 
             <!-- Face ID Elements -->
@@ -42,21 +48,28 @@
                 </div>
                 <canvas id="canvas" class="hidden"></canvas>
             </div>
-            <div id="face-id-error" class="hidden bg-red-800 border border-red-600 text-red-100 px-4 py-3 rounded-lg relative mb-6" role="alert">
+            <div id="face-id-error"
+                class="hidden bg-red-800 border border-red-600 text-red-100 px-4 py-3 rounded-lg relative mb-6"
+                role="alert">
                 <span class="block sm:inline">Face not recognized or does not match username.</span>
             </div>
             <div class="flex items-center justify-between mb-6 space-x-4">
-                <button id="face-login-btn" type="button" class="w-full bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline transition-all duration-200">
+                <button id="face-login-btn" type="button"
+                    class="w-full bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline transition-all duration-200">
                     Login with Face ID
                 </button>
-                <button id="take-photo-btn" type="button" class="hidden w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline transition-all duration-200">
+                <button id="take-photo-btn" type="button"
+                    class="hidden w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline transition-all duration-200"
+                    style="margin: 0px;">
                     Take Photo & Login
                 </button>
             </div>
             <!-- End Face ID Elements -->
 
             <div class="flex items-center justify-between">
-                <button class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg focus:outline-none focus:shadow-outline transition-all duration-200 shadow-lg hover:shadow-blue-500/50" type="submit">
+                <button
+                    class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg focus:outline-none focus:shadow-outline transition-all duration-200 shadow-lg hover:shadow-blue-500/50"
+                    type="submit">
                     Sign In
                 </button>
             </div>
@@ -68,4 +81,5 @@
 
     <script src="static/face-login.js"></script>
 </body>
+
 </html>
