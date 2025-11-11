@@ -11,6 +11,7 @@ import cv2
 import numpy as np
 import base64
 from urllib.request import urlopen
+from decimal import Decimal
 
 
 def recognize(image_array):
