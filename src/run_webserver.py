@@ -44,7 +44,9 @@ def get_db_connection():
 def json_default(o):
     if isinstance(o, (datetime, date)):
         return o.isoformat()
-    raise TypeError("Type %s not serializable" % type(o))
+    if isinstance(o, Decimal):
+        return float(o)
+    raise TypeError(f"Type {type(o)} not serializable")
 
 
 def hash_password(password):
