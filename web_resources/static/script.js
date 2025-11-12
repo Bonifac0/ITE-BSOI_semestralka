@@ -214,7 +214,23 @@ const createChart = (canvasId, title, dataKeys, unit) => {
             plugins: { legend: { labels: { color: '#9CA3AF' } }, tooltip: { backgroundColor: '#1F2937', bodyColor: '#E5E7EB', titleColor: '#E5E7EB' } },
             scales: {
                 x: { title: { display: true, text: 'Time', color: '#9CA3AF' }, ticks: { color: '#9CA3AF' }, grid: { color: '#374151' } },
-                y: { title: { display: true, text: unit, color: '#9CA3AF' }, ticks: { color: '#9CA3AF', callback: (value) => `${value}${unit}` }, grid: { color: '#374151' } }
+                y: {
+                    title: { display: true, text: unit, color: '#9CA3AF' },
+                    ticks: {
+                        color: '#9CA3AF',
+                        callback: (value) => {
+                            if (unit === '°C') {
+                                return `${value.toFixed(2)}${unit}`;
+                            } else if (unit === '%') {
+                                return `${value.toFixed(1)}${unit}`;
+                            } else if (unit === 'lux') {
+                                return `${value.toFixed(0)}${unit}`;
+                            }
+                            return `${value}${unit}`;
+                        }
+                    },
+                    grid: { color: '#374151' }
+                }
             }
         }
     });
