@@ -401,7 +401,16 @@ const fetchHistoricalData = async (range = '1h') => {
         } else {
             const groupedData = {};
             rawData.forEach(d => {
-                const time = new Date(d.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                const date = new Date(d.time);
+                const time = date.toLocaleString('sv-SE', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: false
+                });
+
                 if (!groupedData[time]) {
                     groupedData[time] = { time: time };
                     for (let i = 1; i <= 5; i++) {
@@ -418,9 +427,7 @@ const fetchHistoricalData = async (range = '1h') => {
                 }
             });
             historicalData = Object.values(groupedData).sort((a, b) => {
-                const timeA = a.time.split(':');
-                const timeB = b.time.split(':');
-                return new Date(0, 0, 0, timeA[0], timeA[1]) - new Date(0, 0, 0, timeB[0], timeB[1]);
+                return a.time.localeCompare(b.time);
             });
         }
     } catch (error) {

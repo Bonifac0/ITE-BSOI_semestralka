@@ -159,6 +159,16 @@ class HistoryDataHandler(BaseHandler):
 
         cursor.execute(query, tuple(params))
         results = cursor.fetchall()
+
+        # Format numerical values
+        for record in results:
+            if 'temperature' in record and record['temperature'] is not None:
+                record['temperature'] = round(float(record['temperature']), 2)
+            if 'humidity' in record and record['humidity'] is not None:
+                record['humidity'] = round(float(record['humidity']), 1)
+            if 'lightness' in record and record['lightness'] is not None:
+                record['lightness'] = int(round(float(record['lightness']), 0))
+
         cursor.close()
         conn.close()
         self.write(json.dumps(results, default=json_default))
