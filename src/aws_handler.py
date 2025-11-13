@@ -28,12 +28,13 @@ def send_to_aws(massage: dict):
 
 
 def timestamp_refination(inp: str) -> str:
-    """dont ask, it is what it is :("""
-    # Example input: '2020-03-24T15:26:05.336974'
-    dt = datetime.fromisoformat(inp)
-    dt = dt.replace(tzinfo=timezone(timedelta(hours=1)))
-    # Example input: '2020-03-24T15:26:05.336+01:00'
-    return dt.isoformat(timespec="milliseconds")
+    """Convert UTC ISO timestamp to Prague winter time (UTC+1)."""
+    # Parse input as UTC time
+    dt_utc = datetime.fromisoformat(inp).replace(tzinfo=timezone.utc)
+    # Convert to Prague winter time (CET = UTC+1)
+    prague_winter = dt_utc.astimezone(timezone(timedelta(hours=1)))
+    # Return ISO format with milliseconds
+    return prague_winter.isoformat(timespec="milliseconds")
 
 
 def _post_(ep, body):
@@ -199,5 +200,5 @@ if __name__ == "__main__":  # for testing
         "illumination": 1043,
     }
 
-    send_to_aws(val)
-    # print(timestamp_refination("2020-03-24T15:26:05.336974"))
+    # send_to_aws(val)
+    print(timestamp_refination("2020-03-24T15:26:05.336974"))
