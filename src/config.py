@@ -164,14 +164,6 @@ def load_mqtt_credentials():
 
 BROKER_UNAME, BROKER_PASSWD, BROKER_IP, BROKER_PORT = load_mqtt_credentials()
 
-# FACEID==============
-base = "faceid_files/objects/"
-FID_LE_FILE = base + "le.pickle"
-FID_DEPLOY_FILE = base + "deploy.prototxt"
-FID_CAFFE_FILE = base + "res10_300x300_ssd_iter_140000.caffemodel"
-FID_OPENFACE_FILE = base + "openface_nn4.small2.v1.t7"
-FID_RECOGNIZER_FILE = base + "recognizer.pickle"
-
 
 def check_files():
     files_to_check = [
@@ -180,12 +172,7 @@ def check_files():
         FAILED_QUEUE_FILE,
         AWS_CREDENTIALS_FILE,
         COOKIE_CREDENTIALS_FILE,
-        FID_LE_FILE,
-        FID_DEPLOY_FILE,
-        FID_CAFFE_FILE,
-        FID_OPENFACE_FILE,
-        FID_RECOGNIZER_FILE,
     ]
     for path in files_to_check:
-        if not os.path.isfile(path):
-            raise FileNotFoundError(f"File '{path}' does not exist.")
+        if not os.path.exists(path):
+            raise FileNotFoundError(f"File (or folder) '{path}' does not exist.")
