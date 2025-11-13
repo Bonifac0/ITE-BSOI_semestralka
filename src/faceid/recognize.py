@@ -2,7 +2,11 @@ import numpy as np
 import imutils
 import cv2
 import pickle
-import face_config as FID_CFG
+
+try:
+    import face_config as FID_CFG
+except:  # noqa: E722
+    import faceid.face_config as FID_CFG
 
 
 class Recognizer:

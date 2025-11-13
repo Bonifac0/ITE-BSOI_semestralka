@@ -130,7 +130,7 @@ def retry_failed_tasks():
 
 # Create Measurement
 def measurement_to_aws(data: dict):
-    log(f"Uploading measurement for sensorUUID {data['sensor']}", category="AWS")
+    # log(f"Uploading measurement for sensorUUID {data['sensor']}", category="AWS")
 
     payload = {
         "createdOn": data["timestamp"],  # format "2022-10-05T13:00:00.000+01:00"
@@ -141,7 +141,7 @@ def measurement_to_aws(data: dict):
 
     responce = _post_(conf.EP_MEASUREMENTS, payload)
     if bool(responce):
-        log("Measurement upload to AWS sucessful", category="AWS")
+        # log("Measurement upload to AWS sucessful", category="AWS")
         return True
     else:
         _add_to_failed_queue("M", data)
@@ -150,7 +150,7 @@ def measurement_to_aws(data: dict):
 
 # Create Alert
 def alert_to_aws(data: dict):
-    log(f"Uploading alert for sensorUUID {data['sensor']}", category="AWS")
+    # log(f"Uploading alert for sensorUUID {data['sensor']}", category="AWS")
 
     payload = {  # no status
         "createdOn": data["timestamp"],  # format "2022-10-05T13:00:00.000+01:00"
@@ -162,7 +162,7 @@ def alert_to_aws(data: dict):
 
     responce = _post_(conf.EP_ALERTS, payload)
     if bool(responce):
-        log("Alert upload to AWS sucessful", category="AWS")
+        # log("Alert upload to AWS sucessful", category="AWS")
         return True
     else:
         _add_to_failed_queue("A", data)

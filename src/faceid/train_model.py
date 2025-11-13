@@ -1,9 +1,13 @@
 from sklearn.preprocessing import LabelEncoder
 from sklearn.svm import SVC
 import pickle
-import face_config as FID_CFG
-from extract_embeddings import embeddings
 
+try:
+    import face_config as FID_CFG
+    from extract_embeddings import embeddings
+except:  # noqa: E722
+    import faceid.face_config as FID_CFG
+    from faceid.extract_embeddings import embeddings
 
 # load the face embeddings
 print("[INFO] loading face embeddings...")
