@@ -2,6 +2,7 @@ from tornado import httpserver, ioloop, web, websocket
 import os
 import json
 import random
+from faceid.recognize import Recognizer
 import mysql.connector
 from datetime import datetime, timedelta, date
 import config as conf
@@ -14,14 +15,7 @@ from urllib.request import urlopen
 from decimal import Decimal
 
 
-def recognize(image_array):
-    """
-    This function will be implemented by the user.
-    It takes a numpy array (the image) and should return a string with the user's name or 'unknown'.
-    """
-    # For now, it returns a default value.
-    print("Placeholder recognize function called.")
-    return "unknown"
+rec = Recognizer()
 
 
 # --- Hashing Utility ---
@@ -309,7 +303,7 @@ class FaceLoginHandler(BaseHandler):
             return
 
         # Call the placeholder recognition function
-        recognized_name = recognize(image_array)
+        recognized_name = rec.recognize(image_array)
 
         # Check if recognition was successful and matches the typed username
         if (
