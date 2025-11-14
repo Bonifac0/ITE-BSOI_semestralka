@@ -239,7 +239,7 @@ class LoginActionHandler(BaseHandler):
         cursor.execute(query, (username,))
         user = cursor.fetchone()
 
-        if user and user["password_hash"] == hash_password(password):
+        if user and user["password_hash"] == password:
             session_id = str(uuid.uuid4())
             expires_at = datetime.now() + timedelta(days=7)
 

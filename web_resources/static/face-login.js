@@ -113,4 +113,50 @@
     }
 
     window.addEventListener('load', startup, false);
+
+    // Function to hash password using Web Crypto API
+    async function hashPassword(password) {
+        const textEncoder = new TextEncoder();
+        const data = textEncoder.encode(password);
+        const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        const hexHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        return hexHash;
+    }
+
+    // Function to handle login form submission
+    window.handleLoginSubmit = async function(event) {
+        event.preventDefault(); // Prevent default form submission
+
+        const form = event.target;
+        const usernameField = document.getElementById('username');
+        const passwordField = document.getElementById('password');
+        const faceIdError = document.getElementById('face-id-error'); // Assuming this element exists for error display
+
+        // Clear previous errors
+        faceIdError.classList.add('hidden');
+        faceIdError.textContent = "";
+
+        const username = usernameField.value;
+        const password = passwordField.value;
+
+        if (!username || !password) {
+            faceIdError.textContent = "Please enter both username and password.";
+            faceIdError.classList.remove('hidden');
+            return false;
+        }
+
+        try {
+            const hashedPassword = await hashPassword(password);
+            // Update the password field with the hashed password before submitting
+            passwordField.value = hashedPassword;
+            // Now submit the form programmatically
+            form.submit();
+        } catch (error) {
+            console.error("Error hashing password:", error);
+            faceIdError.textContent = "An error occurred during password processing. Please try again.";
+            faceIdError.classList.remove('hidden');
+            return false;
+        }
+    };
 })();

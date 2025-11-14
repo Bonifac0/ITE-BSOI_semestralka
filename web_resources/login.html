@@ -13,7 +13,7 @@
 <body class="min-h-screen bg-gray-900 text-gray-100 flex items-center justify-center p-4">
 
     <div class="w-full max-w-md">
-        <form method="post" action="/login_action" class="bg-gray-800 shadow-2xl rounded-2xl px-8 pt-6 pb-8 mb-4">
+        <form method="post" action="#" onsubmit="return handleLoginSubmit(event);" class="bg-gray-800 shadow-2xl rounded-2xl px-8 pt-6 pb-8 mb-4">
             <div class="mb-8 text-center">
                 <h1 class="text-3xl font-extrabold text-white">Dashboard Login</h1>
             </div>
@@ -67,8 +67,12 @@
             <!-- End Face ID Elements -->
 
             <div class="flex items-center justify-between">
+                <a href="/"
+                    class="w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-4 rounded-lg focus:outline-none focus:shadow-outline transition-all duration-200 shadow-lg text-center mr-2">
+                    Back to Dashboard
+                </a>
                 <button
-                    class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg focus:outline-none focus:shadow-outline transition-all duration-200 shadow-lg hover:shadow-blue-500/50"
+                    class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg focus:outline-none focus:shadow-outline transition-all duration-200 shadow-lg hover:shadow-blue-500/50 ml-2"
                     type="submit">
                     Sign In
                 </button>
@@ -80,6 +84,21 @@
     </div>
 
     <script src="static/face-login.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const passwordField = document.getElementById('password');
+            const loginForm = document.querySelector('form');
+
+            if (passwordField && loginForm) {
+                passwordField.addEventListener('keydown', function(event) {
+                    if (event.key === 'Enter') {
+                        event.preventDefault(); // Prevent default form submission
+                        loginForm.submit(); // Manually submit the form
+                    }
+                });
+            }
+        });
+    </script>
 </body>
 
 </html>
