@@ -232,10 +232,27 @@ const createChart = (canvasId, title, dataKeys, unit) => {
             datasets: datasets,
         },
         options: {
-            responsive: true, maintainAspectRatio: false,
-            plugins: { legend: { labels: { color: '#9CA3AF' } }, tooltip: { backgroundColor: '#1F2937', bodyColor: '#E5E7EB', titleColor: '#E5E7EB' } },
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                mode: 'index',
+                intersect: false,
+            },
+            plugins: {
+                legend: { labels: { color: '#9CA3AF' } },
+                tooltip: {
+                    position: 'nearest',
+                    backgroundColor: '#1F2937',
+                    bodyColor: '#E5E7EB',
+                    titleColor: '#E5E7EB'
+                }
+            },
             scales: {
-                x: { title: { display: true, text: 'Time', color: '#9CA3AF' }, ticks: { color: '#9CA3AF' }, grid: { color: '#374151' } },
+                x: {
+                    title: { display: true, text: 'Time', color: '#9CA3AF' },
+                    ticks: { color: '#9CA3AF' },
+                    grid: { color: '#374151' }
+                },
                 y: {
                     title: { display: true, text: unit, color: '#9CA3AF' },
                     ticks: {
@@ -330,8 +347,24 @@ const createModalChart = (sensorId) => {
             ]
         },
         options: {
-            responsive: true, maintainAspectRatio: false,
-            plugins: { title: { display: true, text: `${sensor.name} - Live Data (Last 10 Minutes)`, color: '#fff', font: { size: 18 } }, legend: { labels: { color: '#9CA3AF' } } },
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                mode: 'index',
+                intersect: false,
+            },
+            plugins: {
+                title: {
+                    display: true,
+                    text: `${sensor.name} - Live Data (Last 10 Minutes)`,
+                    color: '#fff',
+                    font: { size: 18 }
+                },
+                legend: { labels: { color: '#9CA3AF' } },
+                tooltip: {
+                    position: 'nearest',
+                }
+            },
             scales: {
                 x: { ticks: { color: '#9CA3AF' }, grid: { color: '#374151' } },
                 y: { type: 'linear', display: true, position: 'left', title: { display: true, text: 'Temp (°C)', color: '#ef4444' }, ticks: { color: '#ef4444' } },
