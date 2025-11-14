@@ -150,6 +150,8 @@
             const hashedPassword = await hashPassword(password);
             // Update the password field with the hashed password before submitting
             passwordField.value = hashedPassword;
+            // Set the form action to the correct endpoint
+            form.action = '/login_action';
             // Now submit the form programmatically
             form.submit();
         } catch (error) {

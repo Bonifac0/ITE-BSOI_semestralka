@@ -13,7 +13,7 @@
 <body class="min-h-screen bg-gray-900 text-gray-100 flex items-center justify-center p-4">
 
     <div class="w-full max-w-md">
-        <form method="post" action="#" onsubmit="return handleLoginSubmit(event);" class="bg-gray-800 shadow-2xl rounded-2xl px-8 pt-6 pb-8 mb-4">
+        <form method="post" onsubmit="return handleLoginSubmit(event);" class="bg-gray-800 shadow-2xl rounded-2xl px-8 pt-6 pb-8 mb-4">
             <div class="mb-8 text-center">
                 <h1 class="text-3xl font-extrabold text-white">Dashboard Login</h1>
             </div>
@@ -93,7 +93,12 @@
                 passwordField.addEventListener('keydown', function(event) {
                     if (event.key === 'Enter') {
                         event.preventDefault(); // Prevent default form submission
-                        loginForm.submit(); // Manually submit the form
+                        // Create a new submit event and dispatch it on the form
+                        const submitEvent = new Event('submit', {
+                            'bubbles': true,
+                            'cancelable': true
+                        });
+                        loginForm.dispatchEvent(submitEvent);
                     }
                 });
             }
