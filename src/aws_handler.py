@@ -137,7 +137,7 @@ def measurement_to_aws(data: dict):
         "createdOn": data["timestamp"],  # format "2022-10-05T13:00:00.000+01:00"
         "sensorUUID": data["sensor"],
         "temperature": data["value"],
-        "status": "TEST",  # for testing, after that change it to something
+        "status": "OK",  # "test" for testing, "OK" for prod
     }
 
     responce = _post_(conf.EP_MEASUREMENTS, payload)

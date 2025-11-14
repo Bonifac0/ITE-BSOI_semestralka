@@ -26,7 +26,7 @@ class mariaDB_handler:
     def __value_to_sql(inp: dict):
         """Return parameterized SQL and params tuple."""
         sql = (
-            "INSERT INTO test (team, temperature, humidity, lightness, time) "
+            "INSERT INTO prod (team, temperature, humidity, lightness, time) "
             "VALUES (%s, %s, %s, %s, %s)"
         )
         params = (
@@ -42,8 +42,8 @@ class mariaDB_handler:
         """Insert a validated record into MariaDB."""
         try:
             sql, params = self.__value_to_sql(data)
-            self.CURSOR.execute(sql, params)
-            self.MARIADB_CONNECTION.commit()
+            self.CURSOR.execute(sql, params)  # type: ignore
+            self.MARIADB_CONNECTION.commit()  # type: ignore
 
             log("Record inserted successfully to MariaDB.", category="DB")
             return True
