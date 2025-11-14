@@ -209,15 +209,17 @@ const createChart = (canvasId, title, dataKeys, unit) => {
 
     const datasets = dataKeys.map((key, index) => ({
         label: `${sensors[index]?.name || `Sensor ${index + 1}`} ${unit}`,
-        data: historicalData.map(d => d[key] !== null ? d[key].toFixed(2) : null),
+        data: historicalData.map(d => ({ x: d.time, y: d[key] !== null ? d[key].toFixed(2) : null })),
         borderColor: sensorColors[index],
         backgroundColor: sensorColors[index] + '40',
         tension: 0.4,
         pointRadius: 3,
         yAxisID: 'y',
+        spanGaps: true, // Draw a line over null values
+        borderDash: [5, 5], // Make the line dashed
     }));
 
-    const hasData = datasets.some(ds => ds.data.some(point => point !== null));
+    const hasData = datasets.some(ds => ds.data.some(point => point.y !== null));
 
     if (!hasData) {
         chartContainer.innerHTML = `<div class="flex items-center justify-center h-full min-h-[350px] text-xl text-yellow-400">No Records Found for this Period.</div>`;
@@ -228,7 +230,6 @@ const createChart = (canvasId, title, dataKeys, unit) => {
     chartInstances[canvasId] = new Chart(ctx, {
         type: 'line',
         data: {
-            labels: historicalData.map(d => d.time),
             datasets: datasets,
         },
         options: {
@@ -249,6 +250,11 @@ const createChart = (canvasId, title, dataKeys, unit) => {
             },
             scales: {
                 x: {
+                    type: 'timeseries',
+                    time: {
+                        unit: 'minute',
+                        tooltipFormat: 'HH:mm:ss',
+                    },
                     title: { display: true, text: 'Time', color: '#9CA3AF' },
                     ticks: { color: '#9CA3AF' },
                     grid: { color: '#374151' }
@@ -339,11 +345,25 @@ const createModalChart = (sensorId) => {
     modalChartInstance = new Chart(ctx, {
         type: 'line',
         data: {
-            labels: chartData.map(d => d.time.toLocaleTimeString()),
             datasets: [
-                { label: 'Temperature (°C)', data: chartData.map(d => d.temperature), borderColor: '#ef4444', yAxisID: 'y' },
-                { label: 'Humidity (%)', data: chartData.map(d => d.humidity), borderColor: '#3b82f6', yAxisID: 'y1' },
-                { label: 'Lightness (lux)', data: chartData.map(d => d.lightness), borderColor: '#f59e0b', yAxisID: 'y2' }
+                {
+                    label: 'Temperature (°C)',
+                    data: chartData.map(d => ({ x: d.time, y: d.temperature })),
+                    borderColor: '#ef4444',
+                    yAxisID: 'y'
+                },
+                {
+                    label: 'Humidity (%)',
+                    data: chartData.map(d => ({ x: d.time, y: d.humidity })),
+                    borderColor: '#3b82f6',
+                    yAxisID: 'y1'
+                },
+                {
+                    label: 'Lightness (lux)',
+                    data: chartData.map(d => ({ x: d.time, y: d.lightness })),
+                    borderColor: '#f59e0b',
+                    yAxisID: 'y2'
+                }
             ]
         },
         options: {
@@ -366,7 +386,15 @@ const createModalChart = (sensorId) => {
                 }
             },
             scales: {
-                x: { ticks: { color: '#9CA3AF' }, grid: { color: '#374151' } },
+                x: {
+                    type: 'timeseries',
+                    time: {
+                        unit: 'second',
+                        tooltipFormat: 'HH:mm:ss',
+                    },
+                    ticks: { color: '#9CA3AF' },
+                    grid: { color: '#374151' }
+                },
                 y: { type: 'linear', display: true, position: 'left', title: { display: true, text: 'Temp (°C)', color: '#ef4444' }, ticks: { color: '#ef4444' } },
                 y1: { type: 'linear', display: true, position: 'right', title: { display: true, text: 'Humidity (%)', color: '#3b82f6' }, ticks: { color: '#3b82f6' }, grid: { drawOnChartArea: false } },
                 y2: { type: 'linear', display: true, position: 'right', title: { display: true, text: 'Lightness (lux)', color: '#f59e0b' }, ticks: { color: '#f59e0b' }, grid: { drawOnChartArea: false } }
@@ -384,10 +412,9 @@ const updateModalChart = (sensorId) => {
     const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000);
     const chartData = sessionData[sensorId].filter(d => d.time > tenMinutesAgo);
 
-    modalChartInstance.data.labels = chartData.map(d => d.time.toLocaleTimeString());
-    modalChartInstance.data.datasets[0].data = chartData.map(d => d.temperature);
-    modalChartInstance.data.datasets[1].data = chartData.map(d => d.humidity);
-    modalChartInstance.data.datasets[2].data = chartData.map(d => d.lightness);
+    modalChartInstance.data.datasets[0].data = chartData.map(d => ({ x: d.time, y: d.temperature }));
+    modalChartInstance.data.datasets[1].data = chartData.map(d => ({ x: d.time, y: d.humidity }));
+    modalChartInstance.data.datasets[2].data = chartData.map(d => ({ x: d.time, y: d.lightness }));
     modalChartInstance.update('none'); // 'none' for no animation
 };
 
@@ -473,33 +500,24 @@ const fetchHistoricalData = async (range = '1h') => {
             const groupedData = {};
             rawData.forEach(d => {
                 const date = new Date(d.time);
-                const time = date.toLocaleString('sv-SE', {
-                    year: 'numeric',
-                    month: '2-digit',
-                    day: '2-digit',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    hour12: false
-                });
+                const timeKey = date.toISOString(); // Use ISO string as a unique key for the timestamp
 
-                if (!groupedData[time]) {
-                    groupedData[time] = { time: time };
+                if (!groupedData[timeKey]) {
+                    groupedData[timeKey] = { time: date }; // Store the Date object
                     for (let i = 1; i <= 5; i++) {
-                        groupedData[time]['temp' + i] = null;
-                        groupedData[time]['hum' + i] = null;
-                        groupedData[time]['light' + i] = null;
+                        groupedData[timeKey]['temp' + i] = null;
+                        groupedData[timeKey]['hum' + i] = null;
+                        groupedData[timeKey]['light' + i] = null;
                     }
                 }
                 const id = teamToId[d.team.toLowerCase()];
                 if (id) {
-                    groupedData[time]['temp' + id] = d.temperature;
-                    groupedData[time]['hum' + id] = d.humidity;
-                    groupedData[time]['light' + id] = d.lightness;
+                    groupedData[timeKey]['temp' + id] = d.temperature;
+                    groupedData[timeKey]['hum' + id] = d.humidity;
+                    groupedData[timeKey]['light' + id] = d.lightness;
                 }
             });
-            historicalData = Object.values(groupedData).sort((a, b) => {
-                return a.time.localeCompare(b.time);
-            });
+            historicalData = Object.values(groupedData).sort((a, b) => a.time - b.time);
         }
     } catch (error) {
         console.error("Could not fetch historical data:", error);
