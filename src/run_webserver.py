@@ -4,7 +4,7 @@ import json
 import random
 from faceid.recognize import Recognizer
 import mysql.connector
-from datetime import datetime, timedelta, date
+from datetime import datetime, timedelta, date, timezone
 import config as conf
 import hashlib
 import uuid
@@ -102,8 +102,11 @@ class NewDataHandler(web.RequestHandler):
             # Convert timestamp string to datetime object
             try:
                 # Assuming ISO format (e.g., "YYYY-MM-DDTHH:MM:SS" or "YYYY-MM-DD HH:MM:SS")
-                # Handle 'Z' for UTC by replacing it with '+00:00' for datetime.fromisoformat
-                timestamp = datetime.fromisoformat(timestamp_str.replace('Z', '+00:00'))
+                dt_obj = datetime.fromisoformat(timestamp_str.replace('Z', '+00:00'))
+                # If the incoming timestamp is naive (no timezone), assume it's UTC and make it aware.
+                if dt_obj.tzinfo is None:
+                    dt_obj = dt_obj.replace(tzinfo=timezone.utc)
+                timestamp = dt_obj
             except ValueError:
                 self.set_status(400)
                 self.write({"error": f"Invalid timestamp format: '{timestamp_str}'. Expected ISO format (e.g., YYYY-MM-DDTHH:MM:SS)."})
@@ -276,13 +279,13 @@ class SensorSocketHandler(websocket.WebSocketHandler):
         # Query DB for the last 3 minutes of data to send as initial state
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
-        three_minutes_ago = datetime.now() - timedelta(minutes=3)
+        three_minutes_ago = datetime.now(timezone.utc) - timedelta(minutes=3)
         query = "SELECT team, temperature, humidity, lightness, time FROM prod WHERE time >= %s ORDER BY time ASC"
         cursor.execute(query, (three_minutes_ago,))
         results = cursor.fetchall()
         cursor.close()
         conn.close()
-
+        print("Sending initial data:", results)
         # The initial message contains all data points from the last 3 minutes
         initial_message = {"type": "initial_data", "payload": results}
         self.write_message(json.dumps(initial_message, default=json_default))
