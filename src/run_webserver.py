@@ -85,7 +85,7 @@ class NewDataHandler(web.RequestHandler):
         try:
             # Parse the JSON payload from the request body
             payload = json.loads(self.request.body)
-
+            print("Received payload:", payload)
             team_name = payload.get('team_name')
             timestamp_str = payload.get('timestamp')
             temperature = payload.get('temperature')
@@ -117,7 +117,7 @@ class NewDataHandler(web.RequestHandler):
                 "humidity": float(humidity) if humidity is not None else None, # Make optional
                 "lightness": float(illumination) if illumination is not None else None, # Make optional
             }
-
+            print("Processed record for broadcasting:", record)
             # Broadcast the received data to all connected WebSocket clients
             SensorSocketHandler.broadcast_single_update(record)
 
@@ -141,7 +141,7 @@ class HistoryDataHandler(BaseHandler):
 
         time_range = self.get_argument("range", "1h")
         now = datetime.now()
-
+        print("Requested time range:", time_range)
         # Define the aggregation interval and start time based on the range parameter
         agg_interval_seconds = None
         if time_range == "12h":
@@ -179,13 +179,13 @@ class HistoryDataHandler(BaseHandler):
                     AVG(humidity) as humidity,
                     AVG(lightness) as lightness,
                     FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(time) / {agg_interval_seconds}) * {agg_interval_seconds}) as time
-                FROM test
+                FROM prod
                 {'WHERE time >= %s' if start_time else ''}
                 GROUP BY team, FLOOR(UNIX_TIMESTAMP(time) / {agg_interval_seconds})
                 ORDER BY time ASC
             """
         else:
-            query = "SELECT team, temperature, humidity, lightness, time FROM test WHERE time >= %s ORDER BY time ASC"
+            query = "SELECT team, temperature, humidity, lightness, time FROM prod WHERE time >= %s ORDER BY time ASC"
 
         cursor.execute(query, tuple(params))
         results = cursor.fetchall()
@@ -277,7 +277,7 @@ class SensorSocketHandler(websocket.WebSocketHandler):
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
         three_minutes_ago = datetime.now() - timedelta(minutes=3)
-        query = "SELECT team, temperature, humidity, lightness, time FROM test WHERE time >= %s ORDER BY time ASC"
+        query = "SELECT team, temperature, humidity, lightness, time FROM prod WHERE time >= %s ORDER BY time ASC"
         cursor.execute(query, (three_minutes_ago,))
         results = cursor.fetchall()
         cursor.close()
@@ -309,7 +309,7 @@ class SensorSocketHandler(websocket.WebSocketHandler):
                 },
             }
             update_message = {"type": "update", "payload": payload}
-
+            print("Broadcasting update:", update_message)
             for client in cls.clients:
                 client.write_message(json.dumps(update_message, default=json_default))
 
