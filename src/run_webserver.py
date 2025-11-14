@@ -143,8 +143,8 @@ class HistoryDataHandler(BaseHandler):
             return
 
         time_range = self.get_argument("range", "1h")
-        now = datetime.now()
-        print("Requested time range:", time_range)
+        now = datetime.now(timezone.utc)
+
         # Define the aggregation interval and start time based on the range parameter
         agg_interval_seconds = None
         if time_range == "12h":
@@ -193,18 +193,16 @@ class HistoryDataHandler(BaseHandler):
         cursor.execute(query, tuple(params))
         results = cursor.fetchall()
 
-        # Format numerical values
+        # Format numerical values and fix timezones
         for record in results:
+            if 'time' in record and record['time'] and record['time'].tzinfo is None:
+                record['time'] = record['time'].replace(tzinfo=timezone.utc)
             if 'temperature' in record and record['temperature'] is not None:
                 record['temperature'] = round(float(record['temperature']), 2)
             if 'humidity' in record and record['humidity'] is not None:
                 record['humidity'] = round(float(record['humidity']), 1)
             if 'lightness' in record and record['lightness'] is not None:
                 record['lightness'] = int(round(float(record['lightness']), 0))
-
-        cursor.close()
-        conn.close()
-        self.write(json.dumps(results, default=json_default))
 
 
 def check_files():

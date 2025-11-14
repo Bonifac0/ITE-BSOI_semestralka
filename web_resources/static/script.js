@@ -41,29 +41,49 @@ const startLiveUpdates = () => {
         if (message.type === 'initial_data') {
             const initialRecords = message.payload;
 
-            // Process all initial records
+            // Group initial records by sensor ID, keeping only the latest for each.
+            const latestRecords = {};
             initialRecords.forEach(record => {
                 const id = teamToId[record.team.toLowerCase()];
                 if (id) {
-                    const recordTime = new Date(record.time);
-                    sessionData[id].push({ ...record, time: recordTime });
+                    // Since records are sorted by time, the last one for each ID will be the latest.
+                    latestRecords[id] = record;
                 }
             });
 
-            // Determine the latest state for each sensor from the initial data
-            sensors.forEach(sensor => {
-                const sensorRecords = sessionData[sensor.id];
-                if (sensorRecords.length > 0) {
-                    const latestRecord = sensorRecords[sensorRecords.length - 1];
-                    sensor.data = {
-                        temperature: latestRecord.temperature,
-                        humidity: latestRecord.humidity,
-                        lightness: latestRecord.lightness,
+            // Update the main sensors array with the latest initial data
+            sensors = sensors.map(sensor => {
+                const latestRecord = latestRecords[sensor.id];
+                if (latestRecord) {
+                    const recordTime = new Date(latestRecord.time);
+                    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+                    return {
+                        ...sensor,
+                        data: {
+                            temperature: latestRecord.temperature,
+                            humidity: latestRecord.humidity,
+                            lightness: latestRecord.lightness,
+                        },
+                        lastUpdate: recordTime,
+                        status: recordTime > fiveMinutesAgo ? 'Online' : 'Offline',
                     };
-                    sensor.lastUpdate = latestRecord.time;
+                }
+                return sensor; // Return sensor unchanged if no initial data
+            });
+
+            // Populate sessionData for modal charts (can use the full initial list)
+            initialRecords.forEach(record => {
+                const id = teamToId[record.team.toLowerCase()];
+                if (id) {
+                    // Fix for sessionData inconsistency
+                    sessionData[id].push({
+                        temperature: record.temperature,
+                        humidity: record.humidity,
+                        lightness: record.lightness,
+                        time: new Date(record.time)
+                    });
                 }
             });
-            checkSensorStatus(); // Initial status check
 
         } else if (message.type === 'update') {
             const updatedRecord = message.payload;
