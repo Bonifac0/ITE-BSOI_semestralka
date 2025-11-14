@@ -170,7 +170,8 @@ class HistoryDataHandler(BaseHandler):
 
         params = []
         if start_time:
-            params.append(start_time)
+            # Convert aware datetime to naive datetime in UTC for the DB driver
+            params.append(start_time.replace(tzinfo=None))
 
         if agg_interval_seconds:
             # The query uses integer division on UNIX timestamps to group records into time intervals.
