@@ -283,6 +283,12 @@ class SensorSocketHandler(websocket.WebSocketHandler):
         results = cursor.fetchall()
         cursor.close()
         conn.close()
+
+        # Make all time objects timezone-aware before sending
+        for record in results:
+            if 'time' in record and record['time'] and record['time'].tzinfo is None:
+                record['time'] = record['time'].replace(tzinfo=timezone.utc)
+
         print("Sending initial data:", results)
         # The initial message contains all data points from the last 3 minutes
         initial_message = {"type": "initial_data", "payload": results}
