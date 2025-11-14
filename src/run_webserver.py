@@ -82,18 +82,54 @@ class BaseHandler(web.RequestHandler):
 
 class NewDataHandler(web.RequestHandler):
     def post(self):
-        conn = get_db_connection()
-        cursor = conn.cursor(dictionary=True)
-        query = "SELECT team, temperature, humidity, lightness, time FROM test ORDER BY time DESC LIMIT 1"
-        cursor.execute(query)
-        latest_record = cursor.fetchone()
-        cursor.close()
-        conn.close()
+        try:
+            # Parse the JSON payload from the request body
+            payload = json.loads(self.request.body)
 
-        if latest_record:
-            SensorSocketHandler.broadcast_single_update(latest_record)
+            team_name = payload.get('team_name')
+            timestamp_str = payload.get('timestamp')
+            temperature = payload.get('temperature')
+            humidity = payload.get('humidity')
+            illumination = payload.get('illumination')
 
-        self.write({"status": "ok"})
+            # Basic validation for presence of all required fields
+            # team_name, timestamp, temperature are still required
+            if not all([team_name, timestamp_str, temperature is not None]):
+                self.set_status(400)
+                self.write({"error": "Missing required data in payload. Required: team_name, timestamp, temperature."})
+                return
+
+            # Convert timestamp string to datetime object
+            try:
+                # Assuming ISO format (e.g., "YYYY-MM-DDTHH:MM:SS" or "YYYY-MM-DD HH:MM:SS")
+                # Handle 'Z' for UTC by replacing it with '+00:00' for datetime.fromisoformat
+                timestamp = datetime.fromisoformat(timestamp_str.replace('Z', '+00:00'))
+            except ValueError:
+                self.set_status(400)
+                self.write({"error": f"Invalid timestamp format: '{timestamp_str}'. Expected ISO format (e.g., YYYY-MM-DDTHH:MM:SS)."})
+                return
+
+            # Construct the record in the format expected by broadcast_single_update
+            record = {
+                "team": team_name,
+                "time": timestamp,
+                "temperature": float(temperature),
+                "humidity": float(humidity) if humidity is not None else None, # Make optional
+                "lightness": float(illumination) if illumination is not None else None, # Make optional
+            }
+
+            # Broadcast the received data to all connected WebSocket clients
+            SensorSocketHandler.broadcast_single_update(record)
+
+            self.write({"status": "ok"})
+
+        except json.JSONDecodeError:
+            self.set_status(400)
+            self.write({"error": "Invalid JSON payload. Ensure the request body is valid JSON."})
+        except Exception as e:
+            # Catch any other unexpected errors
+            self.set_status(500)
+            self.write({"error": f"An internal server error occurred: {str(e)}"})
 
 
 class HistoryDataHandler(BaseHandler):
