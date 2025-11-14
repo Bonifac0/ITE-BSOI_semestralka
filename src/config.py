@@ -4,6 +4,13 @@ import re
 TORNADO_NOTIFY_URL = "https://aether70.zcu.cz/api/newData"
 
 VALID_TEAMS = {"yellow", "black", "red", "blue", "green"}
+VALID_TOPICS = {
+    "ite25/yellow",
+    "ite25/black",
+    "ite25/red",
+    "ite25/blue",
+    "ite25/green",
+}
 TIMESTAMP_REGEX = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?$")
 
 # Failed queue======
