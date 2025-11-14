@@ -205,6 +205,10 @@ class HistoryDataHandler(BaseHandler):
             if 'lightness' in record and record['lightness'] is not None:
                 record['lightness'] = int(round(float(record['lightness']), 0))
 
+        cursor.close()
+        conn.close()
+        self.write(json.dumps(results, default=json_default))
+
 
 def check_files():
     files_to_check = [CERTIFILE_PATH, KEYFILE_PATH, CA_CERTS]
