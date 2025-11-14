@@ -220,7 +220,11 @@ def check_files():
 class RootHandler(BaseHandler):
     def get(self):
         current_user = self.get_current_user()
-        self.render(INDEX_PATH, is_logged_in=(current_user is not None))
+        self.render(
+            INDEX_PATH,
+            is_logged_in=(current_user is not None),
+            current_user=current_user,
+        )
 
 
 class LoginRenderHandler(web.RequestHandler):

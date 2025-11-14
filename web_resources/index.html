@@ -16,8 +16,9 @@
 <body class="min-h-screen bg-gray-900 text-gray-100 p-4 sm:p-8 font-sans flex flex-col">
 
         <header class="relative mb-10 text-center">
-        <div class="absolute top-0 right-0 p-4">
+        <div class="absolute top-0 right-0 p-4 flex items-center">
             {% if is_logged_in %}
+                <span class="text-gray-400 text-sm mr-4">Logged in as <strong class="text-white">{{ current_user['username'] }}</strong></span>
                 <a href="/logout" class="px-4 py-2 text-sm font-medium rounded-md bg-gray-700 text-gray-300 hover:bg-gray-600">Logout</a>
             {% else %}
                 <a href="/login" class="px-4 py-2 text-sm font-medium rounded-md bg-blue-600 text-white hover:bg-blue-700">Login</a>
