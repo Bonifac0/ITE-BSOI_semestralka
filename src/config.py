@@ -141,7 +141,7 @@ COOKIE_CONFIG = load_cookie_credentials()
 
 # MQTT==============
 MQTT_CREDENTIALS_FILE = "credentials/credentials_mqtt.txt"
-MQTT_TOPIC = "ite25/practise/blue"
+MQTT_TOPIC = "ite25/#"
 
 
 def load_mqtt_credentials():
