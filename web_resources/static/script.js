@@ -216,7 +216,6 @@ const createChart = (canvasId, title, dataKeys, unit) => {
         pointRadius: 3,
         yAxisID: 'y',
         spanGaps: true, // Draw a line over null values
-        borderDash: [5, 5], // Make the line dashed
     }));
 
     const hasData = datasets.some(ds => ds.data.some(point => point.y !== null));
@@ -254,6 +253,10 @@ const createChart = (canvasId, title, dataKeys, unit) => {
                     time: {
                         unit: 'minute',
                         tooltipFormat: 'HH:mm:ss',
+                        displayFormats: {
+                            minute: 'HH:mm',
+                            hour: 'HH:mm'
+                        }
                     },
                     title: { display: true, text: 'Time', color: '#9CA3AF' },
                     ticks: { color: '#9CA3AF' },
@@ -500,7 +503,7 @@ const fetchHistoricalData = async (range = '1h') => {
             const groupedData = {};
             rawData.forEach(d => {
                 const date = new Date(d.time);
-                const timeKey = date.toISOString(); // Use ISO string as a unique key for the timestamp
+                const timeKey = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()} ${date.getHours()}:${date.getMinutes()}`;
 
                 if (!groupedData[timeKey]) {
                     groupedData[timeKey] = { time: date }; // Store the Date object
