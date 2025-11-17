@@ -252,7 +252,7 @@ const createChart = (canvasId, title, dataKeys, unit) => {
                     type: 'timeseries',
                     time: {
                         unit: 'minute',
-                        tooltipFormat: 'yyyy-MM-dd HH:mm:ss',
+                        tooltipFormat: 'yyyy-MM-dd HH:mm',
                         displayFormats: {
                             minute: 'HH:mm',
                             hour: 'HH:mm'
@@ -392,15 +392,19 @@ const createModalChart = (sensorId) => {
                 x: {
                     type: 'timeseries',
                     time: {
-                        unit: 'second',
-                        tooltipFormat: 'HH:mm:ss',
+                        unit: 'minute',
+                        tooltipFormat: 'yyyy-MM-dd HH:mm',
+                        displayFormats: {
+                            minute: 'HH:mm',
+                            hour: 'HH:mm'
+                        }
                     },
                     ticks: { color: '#9CA3AF' },
                     grid: { color: '#374151' }
                 },
-                y: { type: 'linear', display: true, position: 'left', title: { display: true, text: 'Temp (°C)', color: '#ef4444' }, ticks: { color: '#ef4444' } },
-                y1: { type: 'linear', display: true, position: 'right', title: { display: true, text: 'Humidity (%)', color: '#3b82f6' }, ticks: { color: '#3b82f6' }, grid: { drawOnChartArea: false } },
-                y2: { type: 'linear', display: true, position: 'right', title: { display: true, text: 'Lightness (lux)', color: '#f59e0b' }, ticks: { color: '#f59e0b' }, grid: { drawOnChartArea: false } }
+                y: { type: 'linear', display: true, position: 'left', title: { display: true, text: 'Temp (°C)', color: '#ef4444' }, ticks: { color: '#ef4444' }, min: 15, max: 25 },
+                y1: { type: 'linear', display: true, position: 'right', title: { display: true, text: 'Humidity (%)', color: '#3b82f6' }, ticks: { color: '#3b82f6' }, grid: { drawOnChartArea: false }, min: 30, max: 70 },
+                y2: { type: 'linear', display: true, position: 'right', title: { display: true, text: 'Lightness (lux)', color: '#f59e0b' }, ticks: { color: '#f59e0b' }, grid: { drawOnChartArea: false }, min: 0, max: 500 }
             }
         }
     });
