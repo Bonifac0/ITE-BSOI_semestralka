@@ -252,7 +252,7 @@ const createChart = (canvasId, title, dataKeys, unit) => {
                     type: 'timeseries',
                     time: {
                         unit: 'minute',
-                        tooltipFormat: 'HH:mm:ss',
+                        tooltipFormat: 'yyyy-MM-dd HH:mm:ss',
                         displayFormats: {
                             minute: 'HH:mm',
                             hour: 'HH:mm'
@@ -271,13 +271,13 @@ const createChart = (canvasId, title, dataKeys, unit) => {
                                 return `${value.toFixed(2)}${unit}`;
                             } else if (unit === '%') {
                                 return `${value.toFixed(1)}${unit}`;
-                            } else if (unit === 'lux') {
-                                return `${value.toFixed(0)}${unit}`;
                             }
                             return `${value}${unit}`;
                         }
                     },
-                    grid: { color: '#374151' }
+                    grid: { color: '#374151' },
+                    min: unit === '°C' ? 15 : (unit === '%' ? 30 : 0),
+                    max: unit === '°C' ? 25 : (unit === '%' ? 70 : 500)
                 }
             }
         }
