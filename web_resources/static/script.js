@@ -275,9 +275,7 @@ const createChart = (canvasId, title, dataKeys, unit) => {
                             return `${value}${unit}`;
                         }
                     },
-                    grid: { color: '#374151' },
-                    min: unit === '°C' ? 15 : (unit === '%' ? 30 : 0),
-                    max: unit === '°C' ? 25 : (unit === '%' ? 70 : 500)
+                    grid: { color: '#374151' }
                 }
             }
         }
@@ -402,9 +400,9 @@ const createModalChart = (sensorId) => {
                     ticks: { color: '#9CA3AF' },
                     grid: { color: '#374151' }
                 },
-                y: { type: 'linear', display: true, position: 'left', title: { display: true, text: 'Temp (°C)', color: '#ef4444' }, ticks: { color: '#ef4444' }, min: 15, max: 25 },
-                y1: { type: 'linear', display: true, position: 'right', title: { display: true, text: 'Humidity (%)', color: '#3b82f6' }, ticks: { color: '#3b82f6' }, grid: { drawOnChartArea: false }, min: 30, max: 70 },
-                y2: { type: 'linear', display: true, position: 'right', title: { display: true, text: 'Lightness (lux)', color: '#f59e0b' }, ticks: { color: '#f59e0b' }, grid: { drawOnChartArea: false }, min: 0, max: 500 }
+                y: { type: 'linear', display: true, position: 'left', title: { display: true, text: 'Temp (°C)', color: '#ef4444' }, ticks: { color: '#ef4444' } },
+                y1: { type: 'linear', display: true, position: 'right', title: { display: true, text: 'Humidity (%)', color: '#3b82f6' }, ticks: { color: '#3b82f6' }, grid: { drawOnChartArea: false } },
+                y2: { type: 'linear', display: true, position: 'right', title: { display: true, text: 'Lightness (lux)', color: '#f59e0b' }, ticks: { color: '#f59e0b' }, grid: { drawOnChartArea: false } }
             }
         }
     });
