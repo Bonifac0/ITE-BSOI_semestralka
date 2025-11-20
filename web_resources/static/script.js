@@ -233,8 +233,8 @@ const createChart = (canvasId, title, dataKeys, unit, gapThreshold) => {
         suggestedMin = 18;
         suggestedMax = 23;
     } else if (unit === '%') {
-        suggestedMin = 30;
-        suggestedMax = 70;
+        suggestedMin = 0;
+        suggestedMax = 100;
     } else if (unit === 'lux') {
         suggestedMin = 0;
         suggestedMax = 100;
@@ -442,8 +442,8 @@ const createModalChart = (sensorId) => {
                     type: 'linear',
                     display: true,
                     position: 'right',
-                    suggestedMin: 30,
-                    suggestedMax: 70,
+                    suggestedMin: 0,
+                    suggestedMax: 100,
                     title: { display: true, text: 'Humidity (%)', color: '#3b82f6' },
                     ticks: { color: '#3b82f6' },
                     grid: { drawOnChartArea: false }
