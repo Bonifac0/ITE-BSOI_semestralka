@@ -199,7 +199,7 @@ const destroyCharts = () => {
     chartInstances = {};
 };
 
-const createChart = (canvasId, title, dataKeys, unit) => {
+const createChart = (canvasId, title, dataKeys, unit, gapThreshold) => {
     const chartContainer = document.getElementById(canvasId).parentElement;
 
     if (chartInstances[canvasId]) {
@@ -217,7 +217,7 @@ const createChart = (canvasId, title, dataKeys, unit) => {
         yAxisID: 'y',
         spanGaps: true, // Draw a line over null values
         segment: {
-            borderDash: ctx => (ctx.p1DataIndex - ctx.p0DataIndex > 1) ? [6, 6] : undefined,
+            borderDash: ctx => (ctx.p1.parsed.x - ctx.p0.parsed.x > gapThreshold) ? [6, 6] : undefined,
         }
     }));
 
@@ -316,9 +316,21 @@ const renderHistoryView = () => {
     humContainer.innerHTML = '<canvas id="humChart"></canvas>';
     lightContainer.innerHTML = '<canvas id="lightChart"></canvas>';
 
-    createChart('tempChart', 'Temperature', ['temp1', 'temp2', 'temp3', 'temp4', 'temp5'], '°C');
-    createChart('humChart', 'Humidity', ['hum1', 'hum2', 'hum3', 'hum4', 'hum5'], '%');
-    createChart('lightChart', 'Lightness', ['light1', 'light2', 'light3', 'light4', 'light5'], 'lux');
+    // Determine gap threshold based on current range
+    let gapThreshold;
+    switch (currentRange) {
+        case '1h': gapThreshold = 300000; break; // 5 mins
+        case '12h': gapThreshold = 450000; break; // 7.5 mins
+        case '1d': gapThreshold = 1350000; break; // 22.5 mins
+        case '7d': gapThreshold = 5400000; break; // 1.5 hours
+        case '1m': gapThreshold = 32400000; break; // 9 hours
+        case 'all': gapThreshold = 129600000; break; // 1.5 days
+        default: gapThreshold = 300000;
+    }
+
+    createChart('tempChart', 'Temperature', ['temp1', 'temp2', 'temp3', 'temp4', 'temp5'], '°C', gapThreshold);
+    createChart('humChart', 'Humidity', ['hum1', 'hum2', 'hum3', 'hum4', 'hum5'], '%', gapThreshold);
+    createChart('lightChart', 'Lightness', ['light1', 'light2', 'light3', 'light4', 'light5'], 'lux', gapThreshold);
 };
 
 // --- MODAL LOGIC ---
@@ -417,9 +429,35 @@ const createModalChart = (sensorId) => {
                     ticks: { color: '#9CA3AF' },
                     grid: { color: '#374151' }
                 },
-                y: { type: 'linear', display: true, position: 'left', title: { display: true, text: 'Temp (°C)', color: '#ef4444' }, ticks: { color: '#ef4444' } },
-                y1: { type: 'linear', display: true, position: 'right', title: { display: true, text: 'Humidity (%)', color: '#3b82f6' }, ticks: { color: '#3b82f6' }, grid: { drawOnChartArea: false } },
-                y2: { type: 'linear', display: true, position: 'right', title: { display: true, text: 'Lightness (lux)', color: '#f59e0b' }, ticks: { color: '#f59e0b' }, grid: { drawOnChartArea: false } }
+                y: {
+                    type: 'linear',
+                    display: true,
+                    position: 'left',
+                    suggestedMin: 18,
+                    suggestedMax: 23,
+                    title: { display: true, text: 'Temp (°C)', color: '#ef4444' },
+                    ticks: { color: '#ef4444' }
+                },
+                y1: {
+                    type: 'linear',
+                    display: true,
+                    position: 'right',
+                    suggestedMin: 30,
+                    suggestedMax: 70,
+                    title: { display: true, text: 'Humidity (%)', color: '#3b82f6' },
+                    ticks: { color: '#3b82f6' },
+                    grid: { drawOnChartArea: false }
+                },
+                y2: {
+                    type: 'linear',
+                    display: true,
+                    position: 'right',
+                    suggestedMin: 0,
+                    suggestedMax: 100,
+                    title: { display: true, text: 'Lightness (lux)', color: '#f59e0b' },
+                    ticks: { color: '#f59e0b' },
+                    grid: { drawOnChartArea: false }
+                }
             }
         }
     });

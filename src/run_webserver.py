@@ -283,12 +283,12 @@ class SensorSocketHandler(websocket.WebSocketHandler):
     def open(self):
         SensorSocketHandler.clients.add(self)
 
-        # Query DB for the last 3 minutes of data to send as initial state
+        # Query DB for the last 10 minutes of data to send as initial state
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
-        three_minutes_ago = datetime.now(timezone.utc) - timedelta(minutes=3)
+        ten_minutes_ago = datetime.now(timezone.utc) - timedelta(minutes=10)
         query = "SELECT team, temperature, humidity, lightness, time FROM prod WHERE time >= %s ORDER BY time ASC"
-        cursor.execute(query, (three_minutes_ago,))
+        cursor.execute(query, (ten_minutes_ago,))
         results = cursor.fetchall()
         cursor.close()
         conn.close()
