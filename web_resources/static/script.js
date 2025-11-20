@@ -216,6 +216,9 @@ const createChart = (canvasId, title, dataKeys, unit) => {
         pointRadius: 3,
         yAxisID: 'y',
         spanGaps: true, // Draw a line over null values
+        segment: {
+            borderDash: ctx => (ctx.p1DataIndex - ctx.p0DataIndex > 1) ? [6, 6] : undefined,
+        }
     }));
 
     const hasData = datasets.some(ds => ds.data.some(point => point.y !== null));
@@ -223,6 +226,18 @@ const createChart = (canvasId, title, dataKeys, unit) => {
     if (!hasData) {
         chartContainer.innerHTML = `<div class="flex items-center justify-center h-full min-h-[350px] text-xl text-yellow-400">No Records Found for this Period.</div>`;
         return;
+    }
+
+    let suggestedMin, suggestedMax;
+    if (unit === '°C') {
+        suggestedMin = 18;
+        suggestedMax = 23;
+    } else if (unit === '%') {
+        suggestedMin = 30;
+        suggestedMax = 70;
+    } else if (unit === 'lux') {
+        suggestedMin = 0;
+        suggestedMax = 100;
     }
 
     const ctx = document.getElementById(canvasId).getContext('2d');
@@ -263,6 +278,8 @@ const createChart = (canvasId, title, dataKeys, unit) => {
                     grid: { color: '#374151' }
                 },
                 y: {
+                    suggestedMin: suggestedMin,
+                    suggestedMax: suggestedMax,
                     title: { display: true, text: unit, color: '#9CA3AF' },
                     ticks: {
                         color: '#9CA3AF',

@@ -1,6 +1,7 @@
 credentials/
 test*
 faceID/
+chart.json
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
