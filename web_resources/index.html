@@ -9,24 +9,30 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Load Chart.js for visualization -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@2.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <script
+        src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@2.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
     <link rel="stylesheet" href="static/style.css">
     <link rel="icon" type="image/x-icon" href="static/favicon.png">
 </head>
 
 <body class="min-h-screen bg-gray-900 text-gray-100 p-4 sm:p-8 font-sans flex flex-col">
 
-        <header class="relative mb-10 text-center">
-        <div class="absolute top-0 right-0 p-4 flex items-center">
+    <header class="relative mb-6 lg:mb-10 text-center flex flex-col lg:block">
+        <div
+            class="w-full lg:w-auto lg:absolute lg:top-0 lg:right-0 p-2 lg:p-4 flex justify-center lg:justify-end items-center order-first lg:order-none mb-4 lg:mb-0">
             {% if is_logged_in %}
-                <span class="text-gray-400 text-sm mr-4">Logged in as <strong class="text-white">{{ current_user['username'] }}</strong></span>
-                <a href="/logout" class="px-4 py-2 text-sm font-medium rounded-md bg-gray-700 text-gray-300 hover:bg-gray-600">Logout</a>
+            <span class="text-gray-400 text-sm mr-2 lg:mr-4">Logged in as <strong class="text-white">{{
+                    current_user['username']
+                    }}</strong></span>
+            <a href="/logout"
+                class="px-4 py-2 text-sm font-medium rounded-md bg-gray-700 text-gray-300 hover:bg-gray-600">Logout</a>
             {% else %}
-                <a href="/login" class="px-4 py-2 text-sm font-medium rounded-md bg-blue-600 text-white hover:bg-blue-700">Login</a>
+            <a href="/login"
+                class="px-4 py-2 text-sm font-medium rounded-md bg-blue-600 text-white hover:bg-blue-700">Login</a>
             {% end %}
         </div>
         <h1 class="text-4xl font-extrabold text-white mb-2 tracking-tight">Blue Team Sensor Dashboard</h1>
-        <p class="text-gray-400">Real-time data visualization for 5 environment sensor sets.</p>
+        <p class="text-gray-400 text-base">Real-time data visualization for 5 environment sensor sets.</p>
     </header>
 
     <!-- Navigation -->
@@ -47,7 +53,7 @@
     <main id="content-area" class="relative flex-grow max-w-7xl w-full mx-auto">
         <div id="view-container" class="relative min-h-[500px]">
             <!-- Live Data View -->
-            <div id="live-view" class="absolute top-0 left-0 w-full p-1">
+            <div id="live-view" class="p-1">
                 <div id="update-time" class="flex justify-end text-sm text-gray-500 mb-4"></div>
                 <div id="sensor-cards" class="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-5 gap-6 px-4">
                     <!-- Sensor cards will be injected here -->
@@ -55,14 +61,25 @@
             </div>
 
             <!-- Historical Trends View -->
-                        <div id="history-view" class="absolute hidden top-0 left-0 w-full space-y-8 p-6">
+            <div id="history-view" class="hidden space-y-8 p-6">
                 <div id="time-range-selector" class="flex flex-wrap justify-center gap-2 mb-8">
-                    <button data-range="1h" class="time-range-btn px-4 py-2 text-sm font-medium rounded-md bg-blue-600 text-white">1 Hour</button>
-                    <button data-range="12h" class="time-range-btn px-4 py-2 text-sm font-medium rounded-md bg-gray-700 text-gray-300 hover:bg-gray-600">12 Hours</button>
-                    <button data-range="1d" class="time-range-btn px-4 py-2 text-sm font-medium rounded-md bg-gray-700 text-gray-300 hover:bg-gray-600">1 Day</button>
-                    <button data-range="7d" class="time-range-btn px-4 py-2 text-sm font-medium rounded-md bg-gray-700 text-gray-300 hover:bg-gray-600">7 Days</button>
-                    <button data-range="1m" class="time-range-btn px-4 py-2 text-sm font-medium rounded-md bg-gray-700 text-gray-300 hover:bg-gray-600">1 Month</button>
-                    <button data-range="all" class="time-range-btn px-4 py-2 text-sm font-medium rounded-md bg-gray-700 text-gray-300 hover:bg-gray-600">All</button>
+                    <button data-range="1h"
+                        class="time-range-btn px-4 py-2 text-sm font-medium rounded-md bg-blue-600 text-white">1
+                        Hour</button>
+                    <button data-range="12h"
+                        class="time-range-btn px-4 py-2 text-sm font-medium rounded-md bg-gray-700 text-gray-300 hover:bg-gray-600">12
+                        Hours</button>
+                    <button data-range="1d"
+                        class="time-range-btn px-4 py-2 text-sm font-medium rounded-md bg-gray-700 text-gray-300 hover:bg-gray-600">1
+                        Day</button>
+                    <button data-range="7d"
+                        class="time-range-btn px-4 py-2 text-sm font-medium rounded-md bg-gray-700 text-gray-300 hover:bg-gray-600">7
+                        Days</button>
+                    <button data-range="1m"
+                        class="time-range-btn px-4 py-2 text-sm font-medium rounded-md bg-gray-700 text-gray-300 hover:bg-gray-600">1
+                        Month</button>
+                    <button data-range="all"
+                        class="time-range-btn px-4 py-2 text-sm font-medium rounded-md bg-gray-700 text-gray-300 hover:bg-gray-600">All</button>
                 </div>
 
                 <!-- Charts will be injected here -->
@@ -106,9 +123,10 @@
         </div>
     </div>
 
-    <footer class="mt-12 text-center text-sm text-gray-600 border-t border-gray-800 pt-6">
-        <p>Dashboard Powered by WebSocket & API | Designed with Tailwind CSS & Chart.js by <span
-                class="text-blue-500">Blue Team</span></p>
+    <footer class="mt-auto pt-6 pb-2 text-center text-sm text-gray-600 border-t border-gray-800">
+        <p>Dashboard Powered by WebSockets | Built with Tailwind CSS & Chart.js by <span class="text-blue-500">Blue
+                Team</span> & <a href="https://gemini.google.com" target="_blank"
+                class="text-blue-500 hover:underline">Gemini</a></p>
     </footer>
 
     <script src="static/script.js"></script>
