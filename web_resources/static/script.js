@@ -170,7 +170,7 @@ const renderSensorCard = (sensor) => {
         const ranges = sensorRanges[sensor.id] || sensorRanges[1]; // Default to Blue (1)
 
         const isOut = (val, range) => val !== null && val !== undefined && (val < range[0] || val > range[1]);
-        const shadowStyle = 'text-shadow: 0 0 8px rgba(239, 68, 68, 0.8);'; // Red glow
+        const shadowStyle = 'text-shadow: 0 0 12px rgba(239, 68, 68, 1);'; // Red glow
 
         const tempStyle = `color: ${color}; ${isOut(temp, ranges.temp) ? shadowStyle : ''}`;
         const humStyle = `color: ${color}; ${isOut(hum, ranges.hum) ? shadowStyle : ''}`;
