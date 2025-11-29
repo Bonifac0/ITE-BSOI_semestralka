@@ -226,7 +226,9 @@ const createChart = (canvasId, title, dataKeys, unit, gapThreshold) => {
 
     const datasets = dataKeys.map((key, index) => ({
         label: `${sensors[index]?.name || `Sensor ${index + 1}`} ${unit}`,
-        data: historicalData.map(d => ({ x: d.time, y: d[key] !== null ? d[key].toFixed(2) : null })),
+        data: historicalData
+            .map(d => ({ x: d.time, y: d[key] !== null ? d[key].toFixed(2) : null }))
+            .filter(d => d.y !== null),
         borderColor: sensorColors[index],
         backgroundColor: sensorColors[index] + '40',
         tension: 0.4,
