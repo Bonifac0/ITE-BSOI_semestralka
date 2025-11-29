@@ -8,6 +8,13 @@ let sensors = [
 ];
 const sensorColors = ['#0e7fdbff', '#f5f22fff', '#38a164ff', '#ee1212ff', '#e2dedeff']; // Tailwind colors: blue, yellow, green, red, black
 
+// Define ranges for out-of-bounds visualization
+const sensorRanges = {
+    1: { temp: [-2, 23], hum: [32, 77], light: [0, 4150] }, // Blue (Default)
+    2: { temp: [-10, 24], hum: [28, 68], light: [0, 3730] }, // Yellow
+    4: { temp: [7, 25], hum: [11, 64], light: [0, 4700] } // Red
+};
+
 let currentView = 'live';
 let historicalData = null;
 let chartInstances = {}; // To store Chart.js instances
@@ -159,19 +166,29 @@ const renderSensorCard = (sensor) => {
         const temp = sensor.data.temperature;
         const hum = sensor.data.humidity;
         const light = sensor.data.lightness;
+
+        const ranges = sensorRanges[sensor.id] || sensorRanges[1]; // Default to Blue (1)
+
+        const isOut = (val, range) => val !== null && val !== undefined && (val < range[0] || val > range[1]);
+        const shadowStyle = 'text-shadow: 0 0 8px rgba(239, 68, 68, 0.8);'; // Red glow
+
+        const tempStyle = `color: ${color}; ${isOut(temp, ranges.temp) ? shadowStyle : ''}`;
+        const humStyle = `color: ${color}; ${isOut(hum, ranges.hum) ? shadowStyle : ''}`;
+        const lightStyle = `color: ${color}; ${isOut(light, ranges.light) ? shadowStyle : ''}`;
+
         content = `
             <div class="grid grid-cols-3 2xl:grid-cols-2 gap-4 place-content-center">
                 <div class="flex flex-col items-center">
                     <p class="text-gray-400 text-sm mb-1">Temp</p>
-                    <div class="text-3xl font-bold" style="color: ${color}">${temp.toFixed(1)}°C</div>
+                    <div class="text-3xl font-bold" style="${tempStyle}">${temp.toFixed(1)}°C</div>
                 </div>
                 <div class="flex flex-col items-center">
                     <p class="text-gray-400 text-sm mb-1">Humidity</p>
-                    <div class="text-3xl font-bold" style="color: ${color}">${hum !== null && hum !== undefined ? hum.toFixed(0) + '%' : '--'}</div>
+                    <div class="text-3xl font-bold" style="${humStyle}">${hum !== null && hum !== undefined ? hum.toFixed(0) + '%' : '--'}</div>
                 </div>
                 <div class="flex flex-col items-center 2xl:col-span-2">
                     <p class="text-gray-400 text-sm mb-1">Lightness</p>
-                    <div class="text-3xl font-bold" style="color: ${color}">${light !== null && light !== undefined ? light.toFixed(0) + ' lux' : '--'}</div>
+                    <div class="text-3xl font-bold" style="${lightStyle}">${light !== null && light !== undefined ? light.toFixed(0) + ' lux' : '--'}</div>
                 </div>
             </div>`;
     }
@@ -240,6 +257,11 @@ const createChart = (canvasId, title, dataKeys, unit, gapThreshold) => {
         suggestedMax = 100;
     }
 
+    const isLongRange = ['7d', '1m', 'all'].includes(currentRange);
+    const timeUnit = isLongRange ? 'day' : 'minute';
+    const timeDisplayFormats = isLongRange ? { day: 'MMM dd' } : { minute: 'HH:mm', hour: 'HH:mm' };
+    const xAxisLabel = isLongRange ? 'Date' : 'Time';
+
     const ctx = document.getElementById(canvasId).getContext('2d');
     chartInstances[canvasId] = new Chart(ctx, {
         type: 'line',
@@ -266,14 +288,11 @@ const createChart = (canvasId, title, dataKeys, unit, gapThreshold) => {
                 x: {
                     type: 'timeseries',
                     time: {
-                        unit: 'minute',
+                        unit: timeUnit,
                         tooltipFormat: 'yyyy-MM-dd HH:mm',
-                        displayFormats: {
-                            minute: 'HH:mm',
-                            hour: 'HH:mm'
-                        }
+                        displayFormats: timeDisplayFormats
                     },
-                    title: { display: true, text: 'Time', color: '#9CA3AF' },
+                    title: { display: true, text: xAxisLabel, color: '#9CA3AF' },
                     ticks: { color: '#9CA3AF' },
                     grid: { color: '#374151' }
                 },
