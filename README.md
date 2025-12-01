@@ -43,6 +43,14 @@ Entery point: `src/run_dataprocessor.py`
     - `src/config.py` for configuration and global variables
 ### Webserver (frontend)
 Entery point: `src/run_webserver.py`
+### Raspberry (hardware)
+Main program: `main.py`
+- measures temperature, humidity, and light intensity, synchronizes time via NTP, connects to Wi-Fi, and periodically publishes sensor data to an MQTT broker in JSON format.
+- include class tempSensorDS for temperature measurment
+- uses:
+
+    -`simple.py` class MQTTClient for work with mqtt (connection and publish)
+    - `bh1750.py` class for work with light sensor
 
 ## Hypervisor configuration
 Backend:
