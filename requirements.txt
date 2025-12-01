@@ -2,8 +2,15 @@ asarPy==1.0.1
 certifi==2025.10.5
 charset-normalizer==3.4.4
 idna==3.11
+imutils==0.5.4
+joblib==1.5.2
 mysql-connector-python==9.4.0
+numpy==2.2.6
+opencv-python==4.12.0.88
 paho-mqtt==2.1.0
 requests==2.32.5
+scikit-learn==1.7.2
+scipy==1.16.2
+threadpoolctl==3.6.0
 tornado==6.5.2
 urllib3==2.5.0
