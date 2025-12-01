@@ -7,17 +7,17 @@ from datetime import datetime, timezone, timedelta
 from logger import log
 
 
-def send_to_aws(massage: dict):
+def send_to_aws(message: dict):
     """
     {'team_name': 'white', 'timestamp': '2020-03-24T15:26:05.336974', 'temperature': 25.72, 'humidity': 64.5, 'illumination': 1043}
     """
     for sense in ["temperature", "humidity", "illumination"]:
-        if sense not in massage:  # skip if there is missing sensor
+        if sense not in message:  # skip if there is missing sensor
             continue
         data = {
             "sensor": conf.SENS_UUID[sense],
-            "value": massage[sense],
-            "timestamp": timestamp_refination(massage["timestamp"]),
+            "value": message[sense],
+            "timestamp": timestamp_refination(message["timestamp"]),
         }
 
         measurement_to_aws(data)

@@ -29,7 +29,7 @@ class PROCESSOR:  # :}
         try:
             payload: dict = ast.literal_eval(msg)  # json.loads() is too weak
         except ValueError as e:
-            log(f"Mqtt massage is not json, msg: {msg}\n{e}", level="ERROR")
+            log(f"Mqtt message is not json, msg: {msg}\n{e}", level="ERROR")
             return False
 
         if not self.validate_input(payload):
@@ -47,7 +47,7 @@ class PROCESSOR:  # :}
 
         self.notify_local_server(payload)
 
-        log("Waiting for next massage")
+        log("Waiting for next message")
         return True
 
     @staticmethod

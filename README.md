@@ -35,14 +35,14 @@ credentials/
 
 ## Processes
 ### Dataprocessor (backend)
-Entery poin: `src/run_dataprocessor.py`
+Entery point: `src/run_dataprocessor.py`
 - Uses:
-    - `src/prossing_fcn.py` most of the logick for processing massages
+    - `src/prossing_fcn.py` most of the logic for processing messages
     - `src/mariadb_handler.py` for handling comunication with local running database
-    - `src/aws_handler.py` for sending massages to Aimtech rest API
+    - `src/aws_handler.py` for sending messages to Aimtech rest API
     - `src/config.py` for configuration and global variables
 ### Webserver (frontend)
-Entery poin: `src/run_webserver.py`
+Entery point: `src/run_webserver.py`
 
 ## Hypervisor configuration
 Backend:
