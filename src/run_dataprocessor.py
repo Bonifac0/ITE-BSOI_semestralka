@@ -11,7 +11,7 @@ from logger import log
 def on_connect(client, userdata, flags, rc, properties):
     if rc == 0:
         client.subscribe(conf.MQTT_TOPIC)
-        log("Waiting for message from publicher", category="MQTT")
+        log("Waiting for message from publisher", category="MQTT")
     else:
         log(
             f"Failed to connect to MQTT broker, return code {rc}",

@@ -57,7 +57,6 @@ def connect(ssid, password):
             return
         time.sleep(1)
         timeout -= 1
-
     print(f"Nepodařilo se připojit k síti {ssid}")
 
 
@@ -96,6 +95,7 @@ if __name__ == "__main__":
             client.connect()
             break
         connect(ssid, password)
+
     DHT_PIN = 3  # GPIO DHT sensoru
     d = dht.DHT11(Pin(DHT_PIN))
     client.connect()
@@ -104,21 +104,23 @@ if __name__ == "__main__":
     sensor1 = bh1750.BH1750(i2c)  # adresa 0x23
     print("Připojeno k MQTT brokeru")
     payloads = []
+
     while True:
         time_start = time.time()
         d.measure()
-        h = d.humidity()
+        humidity = d.humidity()
         temperature = sensor.measure_temp()
-        l = sensor1.luminance(bh1750.BH1750.ONCE_HIRES_1)
-        luminance = int(l)
+        luminance = int(sensor1.luminance(bh1750.BH1750.ONCE_HIRES_1))
         print("Teplota:", temperature, "°C")
-        print(f"vlhkost:  {h} %")
-        print("Luminance: %.2f lx" % l)
+        print(f"vlhkost:  {humidity} %")
+        print("Luminance: %.2f lx" % luminance)
+
         timestamp = iso_timestamp()
         payload = '{{"team_name":"{}","timestamp":"{}","temperature":{:.2f},"humidity":{:.1f},"illumination":{}}}'.format(
-            TEAM_NAME, timestamp, temperature, h, luminance
+            TEAM_NAME, timestamp, temperature, humidity, luminance
         )
         payloads.append(payload)
+
         if not is_connected():
             for ssid, password in wifi_networks:
                 if is_connected():
@@ -142,6 +144,7 @@ if __name__ == "__main__":
                     break
                 sleep(0.5)
             print("Odesláno na téma:", TOPIC.decode())
+
         time_end = time.time()
         elapsed_time = time_end - time_start
         remaining_time = PERIOD_S - elapsed_time
