@@ -2,6 +2,8 @@ credentials/
 test*
 faceID/
 chart.json
+finetuning_faceid/
+.vscode/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
