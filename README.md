@@ -104,3 +104,31 @@ WantedBy=multi-user.target
 ## Deployment:
 - Automatical using github actions on push or merge to main
 - More in `.github/workflows/deploy.yml`
+
+# Frontend Functionality & Features
+
+The frontend is a responsive web dashboard built to visualize environmental data from distributed sensor nodes.
+
+### 1. Dashboard Overview
+- **Multi-Sensor Monitoring:** Displays real-time status for 5 distinct sensor teams (Blue, Yellow, Green, Red, Black).
+- **Live View:**
+  - **Real-time Updates:** Utilizes **WebSockets** to push data updates instantly to the client.
+  - **Status Indicators:** Sensors are marked as "Online" or "Offline" based on a 5-minute heartbeat threshold.
+  - **Visual Alerts:** Data values (Temperature, Humidity, Lightness) change color or glow to indicate out-of-bounds readings.
+  - **Detailed Modal:** Clicking a sensor card opens a modal displaying high-resolution data for the last 10 minutes.
+
+### 2. Historical Trends
+*Available only to authenticated users.*
+- Provides interactive line charts for Temperature, Humidity, and Lightness.
+- **Time Ranges:** Supports data visualization over multiple intervals: 1 hour, 12 hours, 1 day, 7 days, 1 month, and All-time.
+- **Data Aggregation:** automatically aggregates data points for longer time ranges to ensure performance.
+
+### 3. Authentication
+- **Standard Login:** Username and password authentication with client-side and server-side SHA-256 hashing.
+- **Face ID Login:** Biometric authentication feature that captures a webcam image and verifies identity against a pre-trained dataset using OpenCV and face recognition models on the backend.
+
+### 4. Tech Stack
+- **Backend:** Python (Tornado Web Server)
+- **Frontend:** HTML5, Tailwind CSS (Styling), Chart.js (Data Visualization), Vanilla JavaScript.
+- **Communication:** Secure WebSockets (WSS) and REST API.
+
