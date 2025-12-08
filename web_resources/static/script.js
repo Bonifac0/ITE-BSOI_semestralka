@@ -288,7 +288,7 @@ const createChart = (canvasId, title, dataKeys, unit, gapThreshold) => {
             },
             scales: {
                 x: {
-                    type: 'timeseries',
+                    type: 'time',
                     time: {
                         unit: timeUnit,
                         tooltipFormat: 'yyyy-MM-dd HH:mm',
